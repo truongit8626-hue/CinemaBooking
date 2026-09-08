@@ -1,0 +1,102 @@
+﻿@{
+    ViewData["Title"] = "Đặt vé";
+}
+
+<h2 class="title text-center mb-4">🎟️ Đặt vé xem phim</h2>
+
+<div class="container text-center">
+
+    <h4>Phim ID: @ViewBag.MovieId</h4>
+
+    <!-- 💺 GHẾ -->
+    <div class="screen">MÀN HÌNH</div>
+
+    <div class="seats">
+        @for (int i = 1; i <= 20; i++)
+        {
+            <div class="seat" onclick="selectSeat(this)">
+                @i
+            </div>
+        }
+    </div>
+
+    <button class="btn btn-warning mt-4" onclick="bookTicket()">Xác nhận đặt vé</button>
+
+</div>
+
+<style>
+
+    /* TITLE */
+    .title {
+        color: #ffc107;
+        text-shadow: 0 0 10px #ffc107;
+    }
+
+    /* SCREEN */
+    .screen {
+        margin: 20px auto;
+        width: 60%;
+        padding: 10px;
+        background: #ccc;
+        color: black;
+        border-radius: 5px;
+    }
+
+    /* SEATS */
+    .seats {
+        display: grid;
+        grid-template-columns: repeat(5, 50px);
+        gap: 10px;
+        justify-content: center;
+    }
+
+    /* GHẾ */
+    .seat {
+        width: 50px;
+        height: 50px;
+        background: #444;
+        color: white;
+        line-height: 50px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        /* HOVER */
+        .seat:hover {
+            background: #ffc107;
+        }
+
+        /* SELECTED */
+        .seat.selected {
+            background: red;
+        }
+
+</style>
+
+<script>
+
+    let selectedSeats = [];
+
+    function selectSeat(el) {
+        el.classList.toggle("selected");
+
+        let seat = el.innerText;
+
+        if (selectedSeats.includes(seat)) {
+            selectedSeats = selectedSeats.filter(s => s !== seat);
+        } else {
+            selectedSeats.push(seat);
+        }
+    }
+
+    function bookTicket() {
+        if (selectedSeats.length === 0) {
+            alert("Vui lòng chọn ghế!");
+            return;
+        }
+
+        alert("Bạn đã đặt ghế: " + selectedSeats.join(", "));
+    }
+
+</script>

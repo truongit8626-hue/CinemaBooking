@@ -1,0 +1,287 @@
+﻿@model CinemaBooking.Models.Showtime
+
+<div class="form-container">
+    <div class="card-box">
+
+        <h2 class="title">Thêm suất chiếu</h2>
+        <div asp-validation-summary="All" style="color:red"></div>
+
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="error-box">
+                @TempData["Error"]
+            </div>
+        }
+
+        <form asp-action="CreateShowtime" method="post">
+            <h4 style="color:white">Lịch chiếu</h4>
+
+            <div id="timeline-scroll"></div>
+            @Html.AntiForgeryToken()
+
+            <input asp-for="MovieId" type="hidden" value="@Model.MovieId" />
+
+
+            <div class="form-group">
+                <label>Phòng</label>
+                <select asp-for="RoomId" asp-items="ViewBag.Rooms" class="form-control"></select>
+                <span asp-validation-for="RoomId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Thời gian chiếu</label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                Thêm suất chiếu
+            </button>
+        </form>
+    </div>
+</div>
+@section Scripts {
+     @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+    function formatTime(date) {
+        const h = date.getHours().toString().padStart(2, '0');
+        const m = date.getMinutes().toString().padStart(2, '0');
+        return h + ":" + m;
+        }
+
+   function renderTimeline(showtimes) {
+
+            // 🔥 sort trước cho dễ xử lý
+            showtimes.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+            const container = document.getElementById("timeline-scroll");
+            container.innerHTML = "";
+
+            // 🔥 kiểm tra trùng
+            for (let i = 0; i < showtimes.length; i++) {
+                const s1 = showtimes[i];
+                s1.isConflict = false;
+
+                for (let j = 0; j < showtimes.length; j++) {
+                    if (i === j) continue;
+
+                    const s2 = showtimes[j];
+
+                    const start1 = new Date(s1.start);
+                    const end1 = new Date(s1.end);
+                    const start2 = new Date(s2.start);
+                    const end2 = new Date(s2.end);
+
+                    if (start1 < end2 && start2 < end1) {
+                        s1.isConflict = true;
+                    }
+                }
+            }
+
+            // 🔥 render
+            showtimes.forEach(s => {
+                const start = new Date(s.start);
+                const end = new Date(s.end);
+
+                const div = document.createElement("div");
+
+                // 👉 nếu trùng → thêm class đỏ
+                div.className = s.isConflict ? "movie-item conflict" : "movie-item";
+
+                div.innerHTML = `
+                    <div class="movie-title">${s.title}</div>
+                    <div class="movie-time">
+                        ${formatDate(start)}<br>
+                        ${formatTime(start)} - ${formatTime(end)}
+                    </div>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        function loadTimeline(roomId) {
+            fetch(`/Admin/GetShowtimesByRoom?roomId=${roomId}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data); // debug nếu cần
+                    renderTimeline(data);
+                });
+        }
+        function formatDate(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}/${m}/${y}`;
+        }
+        // Khi chọn phòng
+        document.querySelector("select[name='RoomId']")
+            .addEventListener("change", function () {
+                loadTimeline(this.value);
+            });
+
+        // Load khi vào trang
+        window.onload = function () {
+            const room = document.querySelector("select[name='RoomId']").value;
+            loadTimeline(room);
+        };
+    </script>
+}
+<style>
+  .card-box {
+    background: #000; /* nền đen sạch */
+    padding: 30px;
+    border-radius: 16px;
+    width: 700px;
+    
+    text-align: center;
+
+    /* ✅ shadow gọn lại */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.title {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+label {
+    color: gold;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+}
+.form-container {
+    position: fixed;
+    top: 70px; /* 🔥 trừ chiều cao navbar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    background: #2ecc71;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-submit:hover {
+    background: #27ae60;
+}
+
+.error-box {
+    color: red;
+    margin-bottom: 10px;
+}
+#timeline-scroll {
+    display: flex;
+    overflow-x: auto;          /* 🔥 cho phép kéo ngang */
+    gap: 10px;
+    padding: 10px;
+    background: #1f1f1f;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+/* Ẩn scrollbar cho đẹp */
+#timeline-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+#timeline-scroll::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+}
+
+/* Card phim */
+.movie-item {
+    min-width: 160px;
+    height: 70px;              /* 🔥 cố định chiều cao */
+    background: linear-gradient(135deg, #f39c12, #f1c40f);
+    border-radius: 12px;
+    padding: 8px;
+
+    display: flex;             /* 🔥 căn giữa nội dung */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    color: black;
+    flex-shrink: 0;
+
+    overflow: hidden;          /* 🔥 QUAN TRỌNG */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}   
+.movie-item:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    cursor: pointer;
+}
+
+.movie-title {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.movie-time {
+    font-size: 11px;
+    margin-top: 4px;
+    text-align: center;
+}
+/* 🔥 SUẤT CHIẾU BỊ TRÙNG */
+.movie-item.conflict {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: 2px solid #ff6b6b;
+    animation: shake 0.3s;
+}
+
+@@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+</style>
+<script>
+    window.onload = function () {
+        const room = document.querySelector("select[name='RoomId']").value;
+
+        // 🔥 nếu có data từ server → render luôn
+        const serverData = @Html.Raw(Json.Serialize(ViewBag.Showtimes ?? new List<object>()));
+
+        if (serverData.length > 0) {
+            renderTimeline(serverData);
+        } else {
+            loadTimeline(room);
+        }
+    };
+</script>
+

@@ -1,0 +1,141 @@
+﻿@model CinemaBooking.ViewModels.TicketViewModel
+
+<div class="payment-container">
+
+    <div class="payment-card">
+
+        <h2 class="title">💳 Thanh toán</h2>
+
+        <div class="info">
+            <p><strong>🎬 Phim:</strong> @Model.MovieName</p>
+            <p><strong>⏰ Suất chiếu:</strong> @Model.Showtime</p>
+            <p><strong>💺 Ghế:</strong> @Model.Seats</p>
+            <p class="price"><strong>💰 Tổng tiền:</strong> @Model.Total VNĐ</p>
+        </div>
+
+        <hr />
+
+        <div class="qr-box">
+                <img src="https://img.vietqr.io/image/VCB-123456789-compact.png?amount=@Model.Total" class="qr-img" class="qr-img" />
+        </div>
+        <p class="note">Sau khi chuyển khoản, bấm nút bên dưới 👇</p>
+
+        <form asp-action="ConfirmPayment" method="post">
+            <input type="hidden" name="BookingId" value="@Model.BookingId" />
+
+            <input type="hidden" name="MovieName" value="@Model.MovieName" />
+            <input type="hidden" name="Showtime" value="@Model.Showtime" />
+            <input type="hidden" name="Seats" value="@Model.Seats" />
+            <input type="hidden" name="Total" value="@Model.Total" />
+
+            <button type="submit" class="btn-pay">
+                ✔ Tôi đã thanh toán
+            </button>
+
+        </form>
+        
+
+      
+
+    </div>
+
+</div>
+<style>
+
+    body {
+        background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+        color: white;
+    }
+
+    /* CĂN GIỮA */
+    .payment-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 50px;
+    }
+
+    /* CARD */
+    .payment-card {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 15px;
+        width: 420px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        transition: 0.3s;
+    }
+
+        .payment-card:hover {
+            transform: translateY(-5px);
+        }
+
+    /* TITLE */
+    .title {
+        color: #ffc107;
+        margin-bottom: 20px;
+    }
+
+    /* INFO */
+    .info p {
+        margin: 8px 0;
+        font-size: 16px;
+    }
+
+    .price {
+        font-size: 18px;
+        color: #00e676;
+    }
+
+    /* QR */
+    .qr-title {
+        margin-top: 15px;
+    }
+    .qr-box {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.qr-box img {
+    border-radius: 12px;
+    padding: 10px;
+    background: white;
+    box-shadow: 0 0 20px rgba(255,193,7,0.6);
+    transition: 0.3s;
+}
+
+.qr-box img:hover {
+    transform: scale(1.05);
+}
+
+    /* NOTE */
+    .note {
+        font-size: 14px;
+        color: #ccc;
+    }
+
+    /* BUTTON */
+    .btn-pay {
+        margin-top: 15px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .btn-pay:hover {
+            transform: scale(1.05);
+        }
+.qr-img {
+    width: 250px;
+    height: 250px;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+}
+
+</style>

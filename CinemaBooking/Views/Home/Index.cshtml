@@ -1,0 +1,35 @@
+﻿@model List<CinemaBooking.Models.Movie>
+
+<h2 style="color: gold; text-align:center;">🎬 Danh sách phim</h2>
+
+<div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+
+    @foreach (var movie in Model)
+    {
+        <div style="width:250px; background:#111; border-radius:15px; padding:15px; color:white; text-align:center; box-shadow:0 0 15px rgba(255,165,0,0.3);">
+
+            <img src="@movie.Poster" style="width:100%; height:300px; object-fit:cover; border-radius:10px;" />
+
+            <h4>@movie.Title</h4>
+            <p>@movie.Genre</p>
+
+            
+            <!-- 👑 ADMIN -->
+            @{
+                var role = Context.Session.GetString("Role");
+            }
+
+            @if (role == "Admin")
+            {
+                <a asp-controller="Admin"
+                   asp-action="ManageShowtimes"
+                   asp-route-movieId="@movie.Id"
+                       class="btn btn-success w-100 mt-2 fw-bold">
+                    ⚙ Quản lý suất chiếu
+                </a>
+            }
+
+        </div>
+    }
+
+</div>

@@ -1,0 +1,36 @@
+﻿@model List<CinemaBooking.Models.Booking>
+
+<h2 class="mb-4">📊 Lịch sử đặt vé</h2>
+
+<table class="table table-dark table-striped">
+    <tr>
+        <th>🎬 Phim</th>
+        <th>⏰ Suất chiếu</th>
+        <th>💺 Ghế</th>
+        <th>📅 Ngày đặt</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Showtime?.Movie?.Title</td>
+
+            <td>
+                @(item.Showtime != null && item.Showtime.StartTime.HasValue
+                  ? item.Showtime.StartTime.Value.ToString("HH:mm dd/MM/yyyy")
+                  : "N/A")
+            </td>
+
+            <td>
+                @string.Join(", ",
+                    item.BookingDetails != null
+                        ? item.BookingDetails
+                            .Where(x => x.Seat != null)
+                            .Select(x => x.Seat.SeatNumber)
+                        : new List<string>())
+            </td>
+
+            <td>@item.BookingTime.ToString("dd/MM/yyyy HH:mm")</td>
+        </tr>
+    }
+</table>

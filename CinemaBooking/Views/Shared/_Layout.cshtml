@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CinemaBooking</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-pro">
+        <div class="nav-left">
+
+            <div class="logo">
+                🎬 <span class="logo-text">CGV HTTC</span>
+            </div>
+
+            <div class="menu">
+                <a href="/Movie/Index">Phim</a>
+                <a href="/Booking/History" class="hide-mobile">📜 Lịch sử</a>
+                <a href="/Booking/MyTickets" class="ticket-btn">🎟 Vé của tôi</a>
+            </div>
+
+        </div>
+
+        
+            <div class="nav-right">
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Admin" class="admin-btn">⚙ Quản lý phim</a>
+
+                    <a href="/Admin/Dashboard" class="admin-btn">
+                        📊 Dashboard
+                    </a>
+                }
+
+                    <span class="user-info">
+                        👤 @User.Identity.Name
+                    </span>
+
+                    <form method="post" asp-area="Identity" asp-page="/Account/Logout" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="/Identity/Account/Login" class="btn btn-warning">
+                        Log
+                    </a>
+                }
+
+            </div>
+        
+    </nav>
+
+
+    <!-- CONTENT -->
+    <div>
+        @RenderBody()
+    </div>
+    <!-- FOOTER -->
+    <footer style="display:none;">
+        <hr />
+        <p>© 2026 - Cinema Booking System</p>
+    </footer>
+
+   
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+@RenderSection("Scripts", required: false)
+<style>
+    .logo {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    }
+
+    .menu {
+    display: flex;
+    gap: 15px;
+    }
+    
+
+</style>

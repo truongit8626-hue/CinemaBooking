@@ -1,0 +1,219 @@
+﻿@model CinemaBooking.ViewModels.TicketViewModel
+
+<div class="ticket-bg" style="background-image: url('@Model.Poster');"></div>
+
+    <div class="ticket-container">
+
+        <div class="ticket-card">
+
+        <h2 class="ticket-title">🎟 Vé xem phim</h2>
+
+        <!-- QR -->
+        <div class="qr-box">
+            <img src="@Model.QRCode" class="qr-img" />
+        </div>
+
+        <!-- Info -->
+        <div class="ticket-info">
+            <p><span>🎬 Phim:</span> @Model.MovieName</p>
+            <p><span>⏰ Suất:</span> @Model.Showtime</p>
+            <p><span>💺 Ghế:</span> @Model.Seats</p>
+            <p class="price"><span>💰 Giá:</span> @Model.Total VNĐ</p>
+        </div>
+
+        <div class="status">✅ Đã thanh toán</div>
+
+        <a href="/" class="btn-home">🏠 Về trang chủ</a>
+
+    </div>
+
+</div>
+
+<style>
+
+body {
+    background: radial-gradient(circle, #1c1c1c, #000);
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* 🌌 BACKGROUND BLUR */
+.ticket-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background-size: cover;
+    background-position: center;
+
+    filter: blur(20px) brightness(0.4);
+    transform: scale(1.1);
+
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* 🎟️ CONTAINER */
+.ticket-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+/* 🎫 CARD VIP */
+ .ticket-card {
+    position: relative;
+    z-index: 10;
+    background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+    backdrop-filter: blur(15px);
+
+    padding: 35px;
+    border-radius: 20px;
+    width: 420px;
+    text-align: center;
+
+    border: 1px solid rgba(255, 193, 7, 0.3);
+
+    box-shadow:
+        0 0 20px rgba(255,165,0,0.3),
+        0 0 60px rgba(255,165,0,0.15),
+        inset 0 0 20px rgba(255,255,255,0.05);
+
+    transition: 0.4s;
+    animation: fadeIn 0.8s ease;
+}
+.ticket-card::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+
+    border-radius: 20px;
+
+    background: linear-gradient(120deg,
+        transparent,
+        rgba(255,193,7,0.6),
+        transparent);
+
+    opacity: 0;
+    transition: 0.5s;
+}
+
+
+
+/* HOVER */
+.ticket-card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow:
+        0 0 30px rgba(255,165,0,0.6),
+        0 0 80px rgba(255,165,0,0.4);
+}
+
+
+
+/* TITLE */
+.title {
+    color: gold;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+/* INFO */
+.ticket-info p {
+    margin: 8px 0;
+    color: #ddd;
+}
+
+.price {
+    color: #00e676;
+    font-size: 18px;
+}
+
+/* LINE */
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #ffc107, transparent);
+    margin: 15px 0;
+}
+
+/* SUCCESS */
+.success {
+    font-size: 18px;
+    color: #28a745;
+    background: rgba(40,167,69,0.15);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* BUTTON */
+ .btn-home {
+    margin-top: 20px;
+    display: inline-block;
+    padding: 12px 25px;
+
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+    color: black;
+
+    border-radius: 10px;
+    font-weight: bold;
+    text-decoration: none;
+
+    box-shadow: 0 5px 15px rgba(255,165,0,0.4);
+
+    transition: 0.3s;
+    position: relative;
+    z-index: 100;
+}
+
+.btn-home:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(255,165,0,0.6);
+}
+
+.btn-home:hover {
+    transform: scale(1.05);
+}
+
+/* LIGHT EFFECT */
+.ticket-card::before {
+    content: "";
+    position: absolute;
+     pointer-events: none;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: 0.5s;
+}
+
+.ticket-card:hover::before {
+    opacity: 1;
+}
+.title {
+    color: gold;
+    font-size: 26px;
+    font-weight: bold;
+
+    text-shadow:
+        0 0 10px rgba(255,193,7,0.8),
+        0 0 20px rgba(255,193,7,0.5);
+}
+
+/* ANIMATION */
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+</style>

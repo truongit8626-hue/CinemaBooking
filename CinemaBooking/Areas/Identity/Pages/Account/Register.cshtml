@@ -1,0 +1,238 @@
+﻿@page
+@model RegisterModel
+@{
+ViewData["Title"] = "Đăng ký";
+Layout = null;
+}
+
+<!-- VIDEO BACKGROUND -->
+
+<video autoplay muted loop id="bg-video">
+    <source src="/videos/bg.mp4" type="video/mp4">
+</video>
+
+<div class="overlay"></div>
+
+<div class="login-container">
+    <div class="login-box">
+
+```
+    <!-- LOGO -->
+    <div class="logo">
+        🎬
+    </div>
+
+    <h2 class="title">Tạo tài khoản</h2>
+
+   <form method="post">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-2"></div>
+
+    <!-- EMAIL -->
+    <div class="input-box">
+        <span class="icon">✉️</span>
+        <input asp-for="Input.Email" />
+        <label>Email</label>
+        <span asp-validation-for="Input.Email" class="text-danger"></span>
+     
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="input-box">
+        <span class="icon">🔒</span>
+        <input asp-for="Input.Password" type="password" />
+        <label>Mật khẩu</label>
+        <span asp-validation-for="Input.Password" class="text-danger"></span>
+    </div>
+
+    <!-- CONFIRM -->
+    <div class="input-box">
+        <span class="icon">🔁</span>
+        <input asp-for="Input.ConfirmPassword" type="password" />
+        <label>Nhập lại mật khẩu</label>
+        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn-login">Đăng ký</button>
+</form>
+</div>
+```
+
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+
+/* VIDEO BACKGROUND */
+#bg-video {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+/* DARK OVERLAY */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+}
+
+/* CONTAINER */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* BOX */
+.login-box {
+    width: 380px;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 40px rgba(255,193,7,0.4);
+    animation: fadeIn 1s ease;
+}
+
+/* LOGO */
+.logo {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* TITLE */
+.title {
+    text-align: center;
+    color: #ffc107;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #ffc107;
+}
+
+/* INPUT BOX */
+.input-box {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: transparent;
+    border: 1px solid #555;
+    border-radius: 10px;
+    outline: none;
+    color: white;
+    transition: 0.3s;
+}
+
+.input-box input:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 10px #ffc107;
+}
+
+/* ICON */
+.input-box .icon {
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    color: #ffc107;
+}
+
+/* LABEL FLOAT */
+.input-box label {
+    position: absolute;
+    left: 40px;
+    top: 12px;
+    color: #aaa;
+    transition: 0.3s;
+    pointer-events: none;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+    top: -10px;
+    left: 35px;
+    font-size: 12px;
+    color: #ffc107;
+    background: black;
+    padding: 0 5px;
+}
+
+/* BUTTON */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg,#ffc107,#ff9800);
+    font-weight: bold;
+    color: black;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ffc107;
+}
+
+/* LINK */
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.register-link a {
+    color: #ffc107;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+/* ANIMATION */
+@@keyframes fadeIn {
+    from {opacity:0; transform:translateY(40px);}
+    to {opacity:1; transform:translateY(0);}
+}
+/* FIX autofill trắng */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1c1c1c inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+.error-text {
+    color: #ff4d4f;
+    font-size: 13px;
+    margin-top: 5px;
+    display: block;
+    text-align: left;
+    padding-left: 5px;
+    animation: fadeIn 0.3s ease;
+}
+.input-validation-error {
+    border: 1px solid red !important;
+    box-shadow: 0 0 10px red;
+}
+.text-danger {
+    color: #ff4d4f;
+    font-size: 13px;
+    margin-top: 5px;
+    display: block;
+    text-align: left;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>

@@ -1,0 +1,76 @@
+﻿@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<div class="container mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="successMessage" class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+
+        <script>
+                setTimeout(function () {
+                    var message = document.getElementById("successMessage");
+
+                    if (message) {
+                        message.style.transition = "opacity 0.5s";
+                        message.style.opacity = "0";
+
+                        setTimeout(function () {
+                            message.remove();
+                        }, 500);
+                    }
+                }, 3000);
+        </script>
+    }
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-warning">🎬 Danh sách phim</h2>
+
+        <!-- ✅ NÚT THÊM PHIM (QUAN TRỌNG) -->
+        <a asp-controller="Admin" asp-action="CreateMovie" class="btn btn-success">
+            ➕ Thêm phim
+        </a>
+    </div>
+
+    <!-- DANH SÁCH PHIM -->
+    <div class="row">
+        @foreach (var movie in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card bg-dark text-white p-2">
+                    <img src="@movie.Poster" class="card-img-top" style="height:300px; object-fit:cover;" />
+
+                    <div class="movie-actions">
+
+                        <a asp-controller="Admin"
+                               asp-action="ManageShowtimes"
+                               asp-route-movieId="@movie.Id"
+                               class="movie-btn btn-manage">
+                            ⚙ Quản lý suất chiếu
+                        </a>
+
+                        <a asp-controller="Admin"
+                               asp-action="EditMovie"
+                               asp-route-id="@movie.Id"
+                               class="movie-btn btn-edit">
+                            ✏ Sửa
+                        </a>
+
+                        <a asp-controller="Admin"
+                               asp-action="DeleteMovie"
+                               asp-route-id="@movie.Id"
+                               class="movie-btn btn-delete"
+                               onclick="return confirm('Bạn có chắc muốn xóa phim này không?');">
+                            🗑 Xóa
+                        </a>
+
+                    </div>
+                </div>
+            </div>  
+        }
+    </div>
+
+</div>

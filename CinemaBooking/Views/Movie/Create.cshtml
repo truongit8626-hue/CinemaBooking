@@ -1,0 +1,151 @@
+﻿<div class="admin-container">
+
+    <div class="movie-form">
+
+        <h2 class="title">🎬 Thêm phim</h2>
+
+       @model CinemaBooking.Models.Movie
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+            <input asp-for="Title" placeholder="Tên phim" required />
+
+            <input asp-for="Genre" placeholder="Thể loại" required />
+
+            <input asp-for="Duration" placeholder="Thời lượng (phút)" required />
+
+            <textarea asp-for="Description" placeholder="Mô tả"></textarea>
+
+            <div class="file-upload">
+                <label>🎞 Ảnh Poster</label>
+                <input type="file" name="PosterFile" />
+            </div>
+
+            <button type="submit" class="btn-submit">
+                ➕ Thêm phim
+            </button>
+
+        </form>
+
+        </>
+
+    </div>
+
+</div>
+<style>
+body {
+background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+color: white;
+}
+
+/* 🌌 CONTAINER */
+.admin-container {
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 90vh;
+}
+
+/* 🎬 FORM CARD */
+.movie-form {
+width: 420px;
+padding: 30px;
+
+background: rgba(0, 0, 0, 0.7);
+backdrop-filter: blur(15px);
+
+border-radius: 20px;
+
+box-shadow:
+0 0 30px rgba(255,165,0,0.3),
+0 0 60px rgba(255,165,0,0.2);
+
+animation: fadeIn 0.6s ease;
+}
+
+/* TITLE */
+.title {
+text-align: center;
+color: #ffc107;
+margin-bottom: 25px;
+
+font-size: 26px;
+font-weight: bold;
+
+text-shadow:
+0 0 10px rgba(255,193,7,0.8),
+0 0 20px rgba(255,193,7,0.4);
+}
+
+/* INPUT + TEXTAREA */
+.movie-form input,
+.movie-form textarea {
+width: 100%;
+margin-bottom: 15px;
+padding: 12px;
+
+border-radius: 10px;
+border: 1px solid rgba(255,255,255,0.1);
+
+background: rgba(255,255,255,0.05);
+color: white;
+
+outline: none;
+transition: 0.3s;
+}
+
+/* FOCUS EFFECT */
+.movie-form input:focus,
+.movie-form textarea:focus {
+border-color: #ffc107;
+box-shadow: 0 0 10px rgba(255,193,7,0.5);
+}
+
+/* TEXTAREA */
+textarea {
+min-height: 80px;
+resize: none;
+}
+
+/* FILE */
+.file-upload {
+margin-bottom: 15px;
+color: #ccc;
+}
+
+/* BUTTON */
+.btn-submit {
+width: 100%;
+padding: 12px;
+
+border: none;
+border-radius: 10px;
+
+background: linear-gradient(45deg, #ffc107, #ff9800);
+color: black;
+
+font-weight: bold;
+cursor: pointer;
+
+box-shadow: 0 5px 20px rgba(255,165,0,0.4);
+
+transition: 0.3s;
+}
+
+.btn-submit:hover {
+transform: translateY(-3px) scale(1.03);
+box-shadow: 0 10px 30px rgba(255,165,0,0.6);
+}
+
+/* ANIMATION */
+@@keyframes fadeIn {
+from {
+opacity: 0;
+transform: translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+</style>

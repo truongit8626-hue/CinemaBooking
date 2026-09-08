@@ -1,0 +1,81 @@
+﻿@model CinemaBooking.Models.Movie
+
+@{
+    ViewData["Title"] = "Chi tiết phim";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 text-white">
+    <div class="row">
+
+        <!-- POSTER -->
+        <div class="col-md-4">
+            <img src="@Model.Poster" class="img-fluid rounded shadow" />
+        </div>
+
+        <!-- THÔNG TIN -->
+        <div class="col-md-8">
+            <h2 class="text-warning">@Model.Title</h2>
+
+            <p><strong>🎬 Thể loại:</strong> @Model.Genre</p>
+            <p><strong>⏱ Thời lượng:</strong> @Model.Duration phút</p>
+            <p><strong>📝 Mô tả:</strong></p>
+            <p>@Model.Description</p>
+
+            <div style="margin-top:20px; display:flex; gap:15px;">
+
+                <a href="/Movie" class="btn-main btn-outline-main">
+                    ← Quay lại
+                </a>
+
+                <a href="/Booking/Showtimes?movieId=@Model.Id" class="btn-main">
+                    🎟 Đặt vé ngay
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+<style>
+        .btn-main {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        padding: 12px 26px;
+        font-weight: 600;
+        font-size: 16px;
+
+        border-radius: 30px;
+        text-decoration: none;
+        border: none;
+
+        cursor: pointer;
+
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+        color: black;
+
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .btn-main:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 10px 25px rgba(255, 193, 7, 0.6);
+    }
+
+    /* Nút viền */
+    .btn-outline-main {
+        background: transparent;
+        color: #ffc107;
+        border: 2px solid #ffc107;
+    }
+
+    .btn-outline-main:hover {
+        background: #ffc107;
+        color: black;
+    }
+</style>

@@ -1,0 +1,218 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<!-- VIDEO BACKGROUND -->
+<video autoplay muted loop id="bg-video">
+    <source src="/videos/bg.mp4" type="video/mp4">
+</video>
+
+<div class="overlay"></div>
+
+<div class="login-container">
+    <div class="login-box">
+
+        <!-- LOGO -->
+        <div class="logo">
+            🎬
+        </div>
+
+        <h2 class="title">Cinema Booking</h2>
+
+        <form method="post" asp-route-returnUrl="/Movie/Index">
+
+            <div asp-validation-summary="All" class="text-danger text-center"></div>
+            <div class="input-box">
+                <span class="icon">✉️</span>
+                <input asp-for="Input.Email" required />
+                <label>Email</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon">🔒</span>
+                <input asp-for="Input.Password" type="password" required />
+                <label>Mật khẩu</label>
+            </div>
+
+            <div class="options">
+                <label>
+                    <input asp-for="Input.RememberMe" /> Ghi nhớ
+                </label>
+                <a asp-page="./ForgotPassword">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="btn-login">Đăng nhập</button>
+
+            <div class="register-link">
+                Chưa có tài khoản?
+                <a asp-page="./Register">Đăng ký</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+
+/* VIDEO */
+#bg-video {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+/* OVERLAY */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: -1;
+}
+
+/* CENTER */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* BOX */
+.login-box {
+    width: 380px;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 40px rgba(255,193,7,0.2);
+    animation: fadeIn 1s ease;
+}
+
+/* LOGO */
+.logo {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* TITLE */
+.title {
+    text-align: center;
+    color: #ffc107;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px #ffc107;
+}
+
+/* INPUT */
+.input-box {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: transparent;
+    border: 1px solid #555;
+    border-radius: 10px;
+    outline: none;
+    color: white;
+}
+
+/* LABEL FLOAT */
+.input-box label {
+    position: absolute;
+    left: 40px;
+    top: 12px;
+    color: #aaa;
+    transition: 0.3s;
+}
+
+/* ICON */
+.input-box .icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffc107;
+}
+
+/* FLOAT EFFECT */
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+    top: -8px;
+    left: 35px;
+    font-size: 12px;
+    color: #ffc107;
+    background: black;
+    padding: 0 5px;
+}
+
+/* FOCUS GLOW */
+.input-box input:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 10px #ffc107;
+}
+
+/* OPTIONS */
+.options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.options a {
+    color: #ffc107;
+}
+
+/* BUTTON */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg,#ffc107,#ff9800);
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ffc107;
+}
+
+/* REGISTER */
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.register-link a {
+    color: #ffc107;
+}
+
+/* ANIMATION */
+@@keyframes fadeIn {
+    from {opacity:0; transform: translateY(30px);}
+    to {opacity:1; transform: translateY(0);}
+}
+/* FIX autofill trắng */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1c1c1c inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+</style>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

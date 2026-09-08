@@ -1,0 +1,61 @@
+﻿@model List<CinemaBooking.Models.Showtime>
+@using CinemaBooking.Models
+
+<div class="showtime-page">
+
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+   
+
+        <div class="card shadow-lg p-4 showtime-card glass-card">
+
+            <h2 class="text-center text-warning mb-4">🎬 Chọn suất chiếu</h2>
+
+            <div class="row">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6 mb-3">
+                        <a href="/Booking/SelectSeats?showtimeId=@item.Id"
+                           class="btn btn-warning w-100 showtime-btn"
+                           onclick="showLoading()">
+
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold fs-4">
+                                    🕒 @item.StartTime?.ToString("HH:mm")
+                                </span>
+                                <small>
+                                    📅 @item.StartTime?.ToString("dd/MM/yyyy")
+                                </small>
+                            </div>
+
+                        </a>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+    <div class="spinner-border text-warning" role="status"></div>
+    <p class="mt-3 text-white">Đang chuyển đến chọn ghế...</p>
+</div>
+
+@section Scripts {
+    <script>
+        function showLoading(event, url) {
+            event.preventDefault();
+
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.style.display = "flex";
+
+            function showLoading() {
+                const overlay = document.getElementById("loadingOverlay");
+                overlay.style.display = "flex";
+            }
+        }
+    </script>
+}

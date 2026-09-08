@@ -1,0 +1,730 @@
+﻿@model IEnumerable<Movie>
+
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- 🎬 BANNER -->
+<div class="hero-slider">
+
+    @foreach (var movie in Model.Take(5))
+    {
+        <div class="slide">
+
+            <!-- nền blur -->
+            <div class="bg-blur" style="background-image:url('@movie.Poster')"></div>
+
+            <!-- ảnh chính -->
+            <img src="@movie.Poster" class="main-img" />
+
+            <!-- overlay -->
+            <div class="slider-overlay"></div>
+
+            <!-- nội dung -->
+            <div class="content">
+                <h1>@movie.Title</h1>
+                <p>@movie.Description</p>
+                <button class="btn-main btn-outline-main"
+                        onclick="showMovieDetail(@movie.Id)">
+                    🎬 Chi tiết phim
+                </button>
+                <a href="/Booking/Showtimes?movieId=@movie.Id" class="btn-main">
+                    🎟 Đặt vé ngay
+                </a>
+            </div>
+
+        </div>
+    }
+
+    <!-- nút -->
+    <div class="nav prev">❮</div>
+    <div class="nav next">❯</div>
+
+    <!-- dots -->
+    <div class="dots"></div>
+
+</div>
+
+<div class="container mt-4">
+
+    <!-- 🔍 SEARCH / FILTER / SORT -->
+<div class="row mb-4">
+
+    <!-- Tìm kiếm -->
+    <div class="col-md-6 mb-2">
+        <input type="text"
+               id="searchBox"
+               class="form-control"
+               placeholder="🔍 Tìm phim theo tên...">
+    </div>
+
+    <!-- Lọc thể loại -->
+    <div class="col-md-3 mb-2">
+        <select id="genreFilter" class="form-select">
+            <option value="">🎭 Tất cả thể loại</option>
+
+            @foreach (var genre in Model
+                .Select(m => m.Genre)
+                .Where(g => !string.IsNullOrEmpty(g))
+                .Distinct()
+                .OrderBy(g => g))
+            {
+                <option value="@genre.ToLower()">@genre</option>
+            }
+        </select>
+    </div>
+
+    <!-- Sắp xếp -->
+    <div class="col-md-3 mb-2">
+        <select id="sortMovies" class="form-select">
+            <option value="">↕️ Mặc định</option>
+            <option value="name-asc">Tên A → Z</option>
+            <option value="name-desc">Tên Z → A</option>
+            <option value="duration-asc">Thời lượng tăng dần</option>
+            <option value="duration-desc">Thời lượng giảm dần</option>
+        </select>
+    </div>
+
+</div>
+
+<!-- 🎞️ SLIDER -->
+<h3 class="section-title">🎬 Danh sách phim</h3>
+
+    <div class="movie-section">
+
+        <button class="nav-btn left" onclick="scrollMovies(-1)">❮</button>
+
+        <div class="movie-slider" id="movieSlider">
+            @foreach (var item in Model)
+            {
+                <div class="movie-item"
+                         data-title="@item.Title.ToLower()"
+                         data-genre="@item.Genre.ToLower()"
+                         data-duration="@item.Duration">
+
+                    <img src="@item.Poster" alt="@item.Title" />
+
+                   <div class="overlay">
+                        <h5>@item.Title</h5>
+                        <p>@item.Genre</p>
+
+                        <!-- Nút chi tiết -->
+                        <a asp-controller="Movie"
+                           asp-action="Details"
+                           asp-route-id="@item.Id"
+                           class="btn btn-outline-warning btn-sm">
+                           🎬 Chi tiết phim
+                        </a>
+
+                        <!-- Nút đặt vé -->
+                        <a asp-controller="Booking"
+                           asp-action="Showtimes"
+                           asp-route-movieId="@item.Id"
+                           class="btn btn-warning btn-sm">
+                            🎟 Đặt vé
+                        </a>
+                    </div>
+
+                </div>
+            }
+        </div>
+
+        <button class="nav-btn right" onclick="scrollMovies(1)">❯</button>
+
+    </div>
+
+</div>
+<div id="movieModal" class="modal">
+    <div class="modal-box">
+
+        <span class="close" onclick="closeModal()">✖</span>
+
+        <div class="modal-content-flex">
+
+            <!-- Poster -->
+            <img id="moviePoster" class="modal-poster" />
+
+            <!-- Info -->
+            <div class="modal-info">
+                <h2 id="movieTitle"></h2>
+
+                <p>🎭 <b>Thể loại:</b> <span id="movieGenre"></span></p>
+                <p>⏱ <b>Thời lượng:</b> <span id="movieDuration"></span></p>
+
+                <p class="desc" id="movieDescription"></p>
+       
+                <div style="margin-top:20px; display:flex; gap:15px;">
+
+                    <!-- Nút quay lại -->
+                    <a href="/Movie" class="btn-main btn-outline-main">
+                        ← Quay lại
+                    </a>
+
+                    <!-- Nút đặt vé -->
+                    <a id="btnBooking" class="btn-book">
+                        🎟 Đặt vé ngay
+                    </a>
+
+                </div>
+            </div>
+        </div>
+</div>
+<style>
+
+    body {
+        background: #0f0f0f;
+        color: white;
+    }
+
+    /* 🎬 BANNER */
+    .banner {
+        height: 300px;
+        background: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba') center/cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .banner-content {
+        background: rgba(0,0,0,0.6);
+        padding: 20px 40px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .banner h1 {
+        color: #ffc107;
+    }
+
+    .section-title {
+        color: #ffc107;
+        margin-bottom: 15px;
+    }
+
+    /* 🎬 NETFLIX STYLE */
+    .movie-section {
+        position: relative;
+    }
+
+    .movie-slider {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        gap: 15px;
+        padding: 20px 40px;
+    }
+
+        /* ẨN SCROLL */
+        .movie-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+    .movie-item {
+        min-width: 200px;
+        height: 300px;
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: 0.3s;
+        flex-shrink: 0;
+    }
+
+        .movie-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* HOVER */
+        .movie-item:hover {
+            transform: scale(1.15);
+            z-index: 5;
+        }
+
+    /* OVERLAY */
+    .overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        opacity: 0;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .movie-item:hover .overlay {
+        opacity: 1;
+    }
+
+    .overlay h5 {
+        color: white;
+    }
+
+    .overlay p {
+        color: #ccc;
+    }
+
+    /* BUTTON */
+    .btn-warning {
+        margin-top: 10px;
+        background: linear-gradient(45deg, #ffc107, #ff9800);
+        border: none;
+    }
+
+    /* NÚT SCROLL */
+    .nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.6);
+        border: none;
+        color: white;
+        font-size: 30px;
+        padding: 10px;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+        .nav-btn.left {
+            left: 0;
+        }
+
+        .nav-btn.right {
+            right: 0;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,193,7,0.8);
+        }
+  .hero-slider {
+    position: relative;
+    height: 500px;
+    overflow: hidden;
+}
+
+/* SLIDE */
+.slide {
+    position: absolute;
+    width: 100%;
+    height: 500px;
+    opacity: 0;
+    transition: 0.8s;
+}
+
+.slide.active {
+    opacity: 1;
+}
+/* ẢNH NỀN BLUR */
+.bg-blur {
+    position: absolute;
+    inset: 0;
+
+    background-size: cover;
+    background-position: center;
+
+    filter: blur(20px) brightness(0.8); /* 👈 sáng hơn */
+    transform: scale(1.1);
+
+    z-index: 1;
+}
+
+/* ẢNH CHÍNH */
+.main-img {
+    position: absolute;
+    height: 90%;
+    top: 50%;
+    left: 65%;
+    transform: translate(-50%, -50%);
+    object-fit: contain;
+    z-index: 2;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+/* OVERLAY GRADIENT */
+.slider-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.7),
+        rgba(0,0,0,0.1)
+    );
+
+    z-index: 3;
+}
+
+/* CONTENT */
+.content {
+    position: absolute;
+    top: 50%;
+    left: 80px;
+    transform: translateY(-50%);
+    z-index: 4;
+    max-width: 500px;
+}
+
+.content h1 {
+    font-size: 50px;
+    color: #ffc107;
+}
+
+.content p {
+    color: #ccc;
+    margin-top: 10px;
+}
+.btn-book {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 20px;
+    padding: 12px 26px;
+
+    font-weight: 600;
+    font-size: 16px;
+
+    color: black;
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+
+    border-radius: 30px;
+    text-decoration: none;
+
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+
+    transition: all 0.3s ease;
+}
+.btn-book:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(255, 193, 7, 0.6);
+}
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+
+    justify-content: center;
+    align-items: center;
+}
+
+/* BOX CHÍNH */
+.modal-box {
+    background: #111;
+    border-radius: 20px;
+    width: 800px;
+    max-width: 90%;
+
+    padding: 30px;
+
+    box-shadow: 0 0 40px rgba(255,193,7,0.4);
+    animation: zoomIn 0.3s ease;
+}
+
+/* FLEX */
+.modal-content-flex {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+/* POSTER */
+.modal-poster {
+    width: 260px;
+    height: 380px;
+    object-fit: cover;
+    border-radius: 15px;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+}
+
+/* INFO */
+.modal-info {
+    flex: 1;
+}
+
+/* TITLE */
+.modal-info h2 {
+    font-size: 32px;
+    color: #ffc107;
+    margin-bottom: 15px;
+}
+
+/* TEXT */
+.modal-info p {
+    font-size: 16px;
+    margin: 8px 0;
+    color: #ddd;
+}
+
+/* DESCRIPTION */
+.desc {
+    margin-top: 15px;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+/* BUTTON */
+.modal-info .btn-book {
+    padding: 12px 26px;
+    font-size: 16px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* CLOSE */
+.close {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    font-size: 22px;
+    cursor: pointer;
+}
+.btn-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 26px;
+    font-weight: 600;
+    font-size: 16px;
+
+    border-radius: 30px;
+    text-decoration: none;
+    border: none;
+
+    cursor: pointer;
+
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+    color: black;
+
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-main:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(255, 193, 7, 0.6);
+}
+.btn-outline-main {
+    background: transparent;
+    color: #ffc107;
+    border: 2px solid #ffc107;
+}
+
+.btn-outline-main:hover {
+    background: #ffc107;
+    color: black;
+}
+/* ANIMATION */
+@@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* RESPONSIVE */
+@@media (max-width: 768px) {
+    .modal-content-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .modal-poster {
+        width: 180px;
+        height: 260px;
+    }
+}
+</style>
+
+<script>
+
+    // SEARCH + FILTER + SORT
+
+const searchBox = document.getElementById("searchBox");
+const genreFilter = document.getElementById("genreFilter");
+const sortMovies = document.getElementById("sortMovies");
+const movieSlider = document.getElementById("movieSlider");
+
+// Lấy danh sách phim
+let movieItems = Array.from(document.querySelectorAll(".movie-item"));
+
+// Lưu vị trí ban đầu của các phim
+movieItems.forEach((item, index) => {
+    item.dataset.originalIndex = index;
+});
+
+// Hàm tìm kiếm + lọc + sắp xếp
+function applyMovieFilters() {
+
+    let searchValue = searchBox.value.toLowerCase().trim();
+    let selectedGenre = genreFilter.value.toLowerCase();
+
+    // Lấy danh sách phim hiện tại
+    let items = Array.from(document.querySelectorAll(".movie-item"));
+
+    // Lọc phim
+    items.forEach(item => {
+
+        let title = item.getAttribute("data-title") || "";
+        let genre = item.getAttribute("data-genre") || "";
+
+        let matchSearch = title.includes(searchValue);
+
+        let matchGenre =
+            selectedGenre === "" ||
+            genre === selectedGenre;
+
+        if (matchSearch && matchGenre) {
+            item.style.display = "block";
+        } else {
+            item.style.display = "none";
+        }
+    });
+
+    // Sắp xếp
+    let sortValue = sortMovies.value;
+
+    if (sortValue !== "") {
+
+        items.sort((a, b) => {
+
+            let titleA = a.getAttribute("data-title") || "";
+            let titleB = b.getAttribute("data-title") || "";
+
+            let durationA =
+                parseInt(a.getAttribute("data-duration")) || 0;
+
+            let durationB =
+                parseInt(b.getAttribute("data-duration")) || 0;
+
+            switch (sortValue) {
+
+                case "name-asc":
+                    return titleA.localeCompare(titleB);
+
+                case "name-desc":
+                    return titleB.localeCompare(titleA);
+
+                case "duration-asc":
+                    return durationA - durationB;
+
+                case "duration-desc":
+                    return durationB - durationA;
+
+                default:
+                    return 0;
+            }
+        });
+
+    } else {
+
+        // Trở về thứ tự ban đầu
+        items.sort((a, b) => {
+            return parseInt(a.dataset.originalIndex) -
+                   parseInt(b.dataset.originalIndex);
+        });
+    }
+
+    // Đưa phim đã sắp xếp trở lại slider
+    items.forEach(item => {
+        movieSlider.appendChild(item);
+    });
+}
+
+
+// Khi nhập từ khóa
+searchBox.addEventListener("keyup", applyMovieFilters);
+
+// Khi chọn thể loại
+genreFilter.addEventListener("change", applyMovieFilters);
+
+// Khi chọn cách sắp xếp
+sortMovies.addEventListener("change", applyMovieFilters);
+
+    // SCROLL NETFLIX
+    function scrollMovies(direction) {
+        const slider = document.getElementById("movieSlider");
+
+        slider.scrollBy({
+            left: direction * 300,
+            behavior: "smooth"
+        });
+    }
+  
+    let slides = document.querySelectorAll(".slide");
+    let dotsContainer = document.querySelector(".dots");
+    let index = 0;
+
+    // tạo dots
+    slides.forEach((_, i) => {
+        let dot = document.createElement("span");
+        dot.addEventListener("click", () => showSlide(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    let dots = document.querySelectorAll(".dots span");
+
+    function showSlide(i) {
+        slides.forEach(s => s.classList.remove("active"));
+        dots.forEach(d => d.classList.remove("active"));
+
+        slides[i].classList.add("active");
+        dots[i].classList.add("active");
+
+        index = i;
+    }
+
+    document.querySelector(".next").onclick = () => {
+        index = (index + 1) % slides.length;
+        showSlide(index);
+    };
+
+    document.querySelector(".prev").onclick = () => {
+        index = (index - 1 + slides.length) % slides.length;
+        showSlide(index);
+    };
+
+    // auto chạy
+    setInterval(() => {
+        index = (index + 1) % slides.length;
+        showSlide(index);
+    }, 5000);
+
+    showSlide(0);
+    
+    function showMovieDetail(id) {
+    fetch('/Movie/GetMovie/' + id)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("moviePoster").src = data.poster; // ✅ đúng
+            document.getElementById("movieTitle").innerText = data.title; // ✅ đúng
+            document.getElementById("movieGenre").innerText = data.genre;
+            document.getElementById("movieDuration").innerText = data.duration + " phút";
+            document.getElementById("movieDescription").innerText = data.description;
+            // 🔥 FIX NÚT ĐẶT VÉ
+            document.getElementById("btnBooking").href =
+                "/Booking/Showtimes?movieId=" + data.id;
+
+            document.getElementById("movieModal").style.display = "flex";
+        });
+}
+
+
+function closeModal() {
+    document.getElementById("movieModal").style.display = "none";
+}
+
+
+</script>

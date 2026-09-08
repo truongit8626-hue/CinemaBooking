@@ -1,0 +1,172 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">📊 Dashboard quản lý rạp</h2>
+
+    <p class="text-muted">
+        Thống kê tổng quan hệ thống CinemaBooking
+    </p>
+
+    <div class="row mt-4">
+
+        <!-- Tổng số phim -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5>🎬 Phim</h5>
+                    <h2>@ViewBag.TotalMovies</h2>
+                    <p class="text-muted mb-0">
+                        Tổng số phim
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số phòng -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5>🎥 Phòng</h5>
+                    <h2>@ViewBag.TotalRooms</h2>
+                    <p class="text-muted mb-0">
+                        Tổng số phòng
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số suất chiếu -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5>🕐 Suất chiếu</h5>
+                    <h2>@ViewBag.TotalShowtimes</h2>
+                    <p class="text-muted mb-0">
+                        Suất chiếu đang hoạt động
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số vé -->
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5>🎫 Vé đã đặt</h5>
+                    <h2>@ViewBag.TotalTickets</h2>
+                    <p class="text-muted mb-0">
+                        Tổng số vé
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+
+            <!-- Tổng doanh thu -->
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h5>💰 Doanh thu</h5>
+
+                        <h2>
+                            @((ViewBag.TotalRevenue ?? 0m).ToString("N0")) đ
+                        </h2>
+
+                        <p class="text-muted mb-0">
+                            Tổng doanh thu
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        <div class="row mt-2">
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+
+                    <h4 class="mb-4">📊 Số vé đã đặt theo từng phim</h4>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Phim</th>
+                                <th>Số vé đã đặt</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in ViewBag.TicketsByMovie)
+                            {
+                                <tr>
+                                    <td>@item.Movie</td>
+                                    <td>@item.Tickets</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+
+                    <h4 class="mb-4">📊 Biểu đồ số vé đã đặt theo phim</h4>
+
+                    <canvas id="ticketsChart"></canvas>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+    const movieLabels = [
+    @foreach (var item in ViewBag.TicketsByMovie)
+    {
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string)item.Movie))
+        @: ,
+    }
+    ];
+
+    const ticketData = [
+    @foreach (var item in ViewBag.TicketsByMovie)
+    {
+        @: @item.Tickets,
+    }
+    ];
+
+    const ctx = document.getElementById('ticketsChart');
+
+    new Chart(ctx, {
+    type: 'bar',
+
+    data: {
+    labels: movieLabels,
+
+    datasets: [{
+    label: 'Số vé đã đặt',
+
+    data: ticketData
+    }]
+    },
+
+    options: {
+    responsive: true,
+
+    scales: {
+    y: {
+    beginAtZero: true
+    }
+    }
+    }
+    });
+
+</script>

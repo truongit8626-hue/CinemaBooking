@@ -1,0 +1,178 @@
+﻿@model List<CinemaBooking.Models.Seat>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger text-center">
+        @TempData["Error"]
+    </div>
+}
+@{
+    var booked = ViewBag.Booked as List<int> ?? new List<int>();
+
+    var groupedSeats = Model
+    .OrderBy(s => s.SeatNumber.Substring(0, 1)) // A, B, C
+    .ThenBy(s => int.Parse(s.SeatNumber.Substring(1))) // 1,2,3...
+    .GroupBy(s => s.SeatNumber.Substring(0, 1));
+
+}
+<div class="booking-page">
+
+
+    <h2 class="text-center mb-4 text-warning">🎬 CGV CINEMA</h2>
+
+    <form method="post" action="/Booking/Book">
+        <input type="hidden" name="showtimeId" value="@ViewBag.ShowtimeId" />
+
+        <div class="screen">🎬 @ViewBag.Room</div>
+
+        <div class="cinema">
+
+            @foreach (var row in groupedSeats)
+            {
+                <div class="seat-row">
+
+                    <div class="row-label">@row.Key</div>
+
+                    @foreach (var seat in row)
+                    {
+                        bool isBooked = booked.Contains(seat.Id);
+
+                        <div class="seat-wrapper">
+                            @if (!isBooked)
+                            {
+                                <input type="checkbox"
+                                       id="seat_@seat.Id"
+                                       name="seatIds"
+                                       value="@seat.Id" />
+
+                                <label for="seat_@seat.Id" class="seat">
+                                    @seat.SeatNumber
+                                </label>
+                            }
+                            else
+                            {
+                                <div class="seat booked" onclick="seatBooked()">
+                                    @seat.SeatNumber
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- CHÚ THÍCH -->
+        <div class="legend text-center mt-4">
+            <span class="box available"></span> Trống
+            <span class="box selected"></span> Đang chọn
+            <span class="box booked"></span> Đã đặt
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-warning px-5">🎟️ Đặt vé</button>
+        </div>
+    </form>
+</div>
+
+    <style>
+        body {
+            background: #111;
+            color: white;
+        }
+
+        .screen {
+            width: 60%;
+            margin: auto;
+            background: linear-gradient(to right, #ccc, #fff, #ccc);
+            color: black;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .cinema {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .seat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .row-label {
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .seat-wrapper input {
+            display: none;
+        }
+
+        .seat {
+            width: 45px;
+            height: 45px;
+            margin: 4px;
+            background: #444;
+            border-radius: 6px;
+            text-align: center;
+            line-height: 45px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 13px;
+        }
+
+            .seat:hover {
+                background: #f39c12;
+            }
+
+        .seat-wrapper input:checked + .seat {
+            background: #00c853;
+        }
+
+    .booked {
+        background: #e53935;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+        .legend .box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+        }
+
+        .available {
+            background: #444;
+        }
+
+        .selected {
+            background: #00c853;
+        }
+
+        .booked {
+            background: #e53935;
+        }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+        function seatBooked() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Ghế này đã được đặt!',
+            confirmButtonColor: '#e53935',
+            background: '#1e1e1e',
+            color: '#fff'
+        });
+    }
+</script>

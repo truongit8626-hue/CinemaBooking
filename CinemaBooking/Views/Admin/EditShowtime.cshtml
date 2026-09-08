@@ -1,0 +1,220 @@
+﻿@model CinemaBooking.Models.Showtime
+
+<div class="form-container">
+    <div class="card-box">
+
+        <h2 class="title">🎬 Sửa suất chiếu</h2>
+
+        <div asp-validation-summary="All" class="error-box"></div>
+
+        <form asp-action="EditShowtime" method="post">
+
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="MovieId" />
+
+            <h4 style="color:white">Lịch chiếu</h4>
+            <div id="timeline-scroll"></div>
+
+            <div class="form-group">
+                <label>Phòng</label>
+                <select asp-for="RoomId" asp-items="ViewBag.Rooms" class="form-control"></select>
+                <span asp-validation-for="RoomId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Thời gian chiếu</label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn-submit">
+                💾 Lưu
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function formatTime(date) {
+            return date.toTimeString().slice(0, 5);
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        function renderTimeline(showtimes) {
+            if (!showtimes || showtimes.length === 0) return;
+
+            showtimes.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+            const container = document.getElementById("timeline-scroll");
+            container.innerHTML = "";
+
+            showtimes.forEach(s => {
+                const start = new Date(s.start);
+                const end = new Date(s.end);
+
+                const div = document.createElement("div");
+                div.className = "movie-item";
+
+                div.innerHTML = `
+                    <div class="movie-title">${s.title}</div>
+                    <div class="movie-time">
+                        ${formatDate(start)}<br>
+                        ${formatTime(start)} - ${formatTime(end)}
+                    </div>
+                `;
+
+                div.onclick = function () {
+                    const input = document.querySelector("input[name='StartTime']");
+                    const iso = new Date(start.getTime() - start.getTimezoneOffset() * 60000)
+                        .toISOString().slice(0, 16);
+                    input.value = iso;
+                };
+
+                container.appendChild(div);
+            });
+        }
+
+        function loadTimeline(roomId) {
+            fetch(`/Admin/GetShowtimesByRoom?roomId=${roomId}`)
+                .then(res => res.json())
+                .then(data => renderTimeline(data))
+                .catch(err => console.error("Lỗi load timeline:", err));
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // load timeline ban đầu
+            const serverData = @Html.Raw(
+                            System.Text.Json.JsonSerializer.Serialize(ViewBag.Showtimes ?? new List<object>())
+                    );
+
+            console.log("DATA:", serverData);
+
+            if (serverData && serverData.length > 0) {
+                renderTimeline(serverData);
+            }
+
+            // đổi phòng
+            const roomSelect = document.querySelector("select[name='RoomId']");
+            if (roomSelect) {
+                roomSelect.addEventListener("change", function () {
+                    loadTimeline(this.value);
+                });
+            }
+        });
+    </script>
+}
+
+<style>
+    .form-container {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0,0,0,0.6);
+        padding: 20px;
+    }
+
+    .card-box {
+        background: #000;
+        padding: 30px;
+        border-radius: 16px;
+        width: 700px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .title {
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    label {
+        color: gold;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background: #1c1c1c;
+        color: white;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 10px;
+        background: #2ecc71;
+        border: none;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+        .btn-submit:hover {
+            background: #27ae60;
+        }
+
+    .error-box {
+        color: red;
+        margin-bottom: 10px;
+    }
+
+    #timeline-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px;
+        background: #1f1f1f;
+        border-radius: 12px;
+        margin: 15px 0;
+    }
+
+    .movie-item {
+        min-width: 160px;
+        height: 70px;
+        background: linear-gradient(135deg, #f39c12, #f1c40f);
+        border-radius: 12px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: black;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+        .movie-item:hover {
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+    .movie-title {
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .movie-time {
+        font-size: 11px;
+        margin-top: 4px;
+        text-align: center;
+    }
+
+    
+</style>

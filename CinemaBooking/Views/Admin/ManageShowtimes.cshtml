@@ -1,0 +1,65 @@
+﻿@model List<CinemaBooking.Models.Showtime>
+
+<h2 class="text-warning">🎬 Quản lý suất chiếu</h2>
+
+<!-- NÚT THÊM -->
+<a asp-controller="Admin"
+       asp-action="CreateShowtime"
+       asp-route-movieId="@ViewBag.MovieId"
+       class="btn btn-success">
+    + Thêm suất chiếu
+</a>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["Warning"]
+    </div>
+}
+<table class="table table-dark">
+    <thead>
+        <tr>
+            <th>Phòng</th>
+            <th>Thời gian</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model.Where(x => !x.IsDeleted))
+        {
+            <tr>
+                <td>@s.Room?.Name</td>
+                <td>
+                    @(s.StartTime.HasValue
+                        ? s.StartTime.Value.ToString("HH:mm dd/MM/yyyy")
+                        : "N/A")
+                </td>
+                <td>
+                    <a asp-action="EditShowtime" asp-route-id="@s.Id" class="btn btn-warning btn-sm">
+                        ✏️ Sửa
+                    </a>
+
+                    <a asp-action="DeleteShowtime"
+                           asp-route-id="@s.Id"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Xóa suất chiếu này?');">
+                        🗑 Xóa
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
