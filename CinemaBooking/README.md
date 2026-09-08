@@ -124,3 +124,7 @@ Tài liệu ghi lại prompt, nội dung hỗ trợ từ AI, phần code đượ
 14. Ghi chú
 
 Dự án được phát triển nhằm phục vụ mục đích học tập và trình diễn các chức năng của một hệ thống quản lý và đặt vé xem phim.
+## 15. Phiên bản
+
+Phiên bản hiện tại hoàn thiện các chức năng chính của Digital Skills Test 2
+và tài liệu phục vụ cài đặt, chạy thử và minh chứng sử dụng AI.
