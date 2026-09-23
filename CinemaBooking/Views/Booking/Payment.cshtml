@@ -21,17 +21,15 @@
         <p class="note">Sau khi chuyển khoản, bấm nút bên dưới 👇</p>
 
         <form asp-action="ConfirmPayment" method="post">
-            <input type="hidden" name="BookingId" value="@Model.BookingId" />
+            <input type="hidden" name="showtimeId"
+                   value="@Context.Session.GetInt32("showtimeId")" />
 
-            <input type="hidden" name="MovieName" value="@Model.MovieName" />
-            <input type="hidden" name="Showtime" value="@Model.Showtime" />
-            <input type="hidden" name="Seats" value="@Model.Seats" />
-            <input type="hidden" name="Total" value="@Model.Total" />
+            <input type="hidden" name="seatIds"
+                   value="@Context.Session.GetString("seatIds")" />
 
             <button type="submit" class="btn-pay">
                 ✔ Tôi đã thanh toán
             </button>
-
         </form>
         
 

@@ -1,0 +1,353 @@
+﻿@model CinemaBooking.ViewModels.UserPreferenceViewModel
+
+@{
+    ViewData["Title"] = "Sở thích xem phim";
+}
+
+<div class="preference-page">
+
+    <div class="preference-box">
+
+        <div class="preference-icon">
+            🎬
+        </div>
+
+        <h1>Khám phá sở thích của bạn</h1>
+
+        <p class="subtitle">
+            Hãy chọn những thể loại phim bạn yêu thích.
+            <br />
+            Gemini sẽ dựa vào lựa chọn này để đề xuất phim phù hợp hơn.
+        </p>
+
+        <form asp-action="Setup" method="post">
+
+            <input type="hidden"
+                   name="returnUrl"
+                   value="@ViewBag.ReturnUrl" />
+
+            <div class="genre-grid">
+
+                @foreach (var genre in Model.AvailableGenres)
+                {
+                    var isChecked = Model.SelectedGenres.Contains(genre);
+
+                    <label class="genre-card @(isChecked ? "selected" : "")">
+
+                        <input type="checkbox"
+                               name="SelectedGenres"
+                               value="@genre"
+                        @(isChecked ? "checked" : "") />
+
+                        <span class="genre-icon">
+
+                            @switch (genre)
+                            {
+                                case "Action":
+                                    @:⚔️
+                                    break;
+
+                                case "Adventure":
+                                    @:🗺️
+                                    break;
+
+                                case "Animation":
+                                    @:🎨
+                                    break;
+
+                                case "Anime":
+                                    @:🇯🇵
+                                    break;
+
+                                case "Comedy":
+                                    @:😂
+                                    break;
+
+                                case "Drama":
+                                    @:🎭
+                                    break;
+
+                                case "Horror":
+                                    @:👻
+                                    break;
+
+                                case "Romance":
+                                    @:❤️
+                                    break;
+
+                                case "Sci-Fi":
+                                    @:🚀
+                                    break;
+
+                                case "Mystery":
+                                    @:🔎
+                                    break;
+
+                                case "Fantasy":
+                                    @:🧙
+                                    break;
+
+                                case "Thriller":
+                                    @:😱
+                                    break;
+
+                                default:
+                                    @:🎬
+                                    break;
+                            }
+
+                        </span>
+
+                        <span class="genre-name">
+                            @genre
+                        </span>
+
+                        <span class="check-mark">
+                            ✓
+                        </span>
+
+                    </label>
+                }
+
+            </div>
+
+            <div asp-validation-summary="ModelOnly"
+                 class="validation-message">
+            </div>
+
+            <button type="submit" class="btn-save-preference">
+                🤖 Lưu sở thích & khám phá phim
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<style>
+
+    .preference-page {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 50px 20px;
+    }
+
+    .preference-box {
+        width: 900px;
+        max-width: 100%;
+        padding: 40px;
+        border-radius: 24px;
+
+        background: rgba(0, 0, 0, 0.82);
+
+        border: 1px solid rgba(255, 193, 7, 0.35);
+
+        box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.6),
+            0 0 30px rgba(255, 193, 7, 0.12);
+
+        backdrop-filter: blur(12px);
+    }
+
+    .preference-icon {
+        text-align: center;
+        font-size: 55px;
+        margin-bottom: 10px;
+    }
+
+    .preference-box h1 {
+        text-align: center;
+        color: #ffc107;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #bbb;
+        line-height: 1.7;
+        margin-bottom: 35px;
+    }
+
+    .genre-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .genre-card {
+        position: relative;
+
+        min-height: 100px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        border: 1px solid #555;
+        border-radius: 14px;
+
+        background: rgba(255,255,255,0.05);
+
+        cursor: pointer;
+
+        transition: all 0.25s ease;
+
+        color: white;
+    }
+
+    .genre-card:hover {
+        transform: translateY(-4px);
+        border-color: #ffc107;
+
+        background: rgba(255,193,7,0.12);
+
+        box-shadow: 0 5px 20px rgba(255,193,7,0.15);
+    }
+
+    .genre-card input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .genre-card.selected {
+        border-color: #ffc107;
+
+        background: rgba(255,193,7,0.18);
+
+        box-shadow:
+            0 0 18px rgba(255,193,7,0.18),
+            inset 0 0 20px rgba(255,193,7,0.05);
+    }
+
+    .genre-icon {
+        font-size: 30px;
+        margin-bottom: 8px;
+    }
+
+    .genre-name {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .check-mark {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+
+        width: 22px;
+        height: 22px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: #ffc107;
+        color: black;
+
+        font-weight: bold;
+
+        opacity: 0;
+        transform: scale(0.5);
+
+        transition: all 0.2s ease;
+    }
+
+    .genre-card.selected .check-mark {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .validation-message {
+        color: #ff6b6b;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .btn-save-preference {
+        display: block;
+
+        width: 100%;
+
+        margin-top: 30px;
+
+        padding: 14px;
+
+        border: none;
+        border-radius: 12px;
+
+        background: linear-gradient(
+            45deg,
+            #ffc107,
+            #ff9800
+        );
+
+        color: #111;
+
+        font-size: 17px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition: all 0.25s ease;
+    }
+
+    .btn-save-preference:hover {
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 8px 25px rgba(255,193,7,0.3);
+    }
+
+    @@media (max-width: 768px) {
+
+        .preference-box {
+            padding: 25px;
+        }
+
+        .genre-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 450px) {
+
+        .genre-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        document.querySelectorAll('.genre-card input')
+            .forEach(function (checkbox) {
+
+                checkbox.addEventListener('change', function () {
+
+                    const card = this.closest('.genre-card');
+
+                    if (this.checked) {
+                        card.classList.add('selected');
+                    }
+                    else {
+                        card.classList.remove('selected');
+                    }
+
+                });
+
+            });
+
+    </script>
+}

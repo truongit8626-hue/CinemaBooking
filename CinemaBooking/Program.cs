@@ -1,5 +1,6 @@
 ﻿using CinemaBooking.Data;
 using CinemaBooking.Models;
+using CinemaBooking.Services.AI;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -30,6 +31,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // 4. MVC + Razor + Session
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddRazorPages();
 builder.Services.AddSession();
 

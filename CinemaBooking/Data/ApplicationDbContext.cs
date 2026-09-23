@@ -17,17 +17,19 @@ namespace CinemaBooking.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingDetail> BookingDetails { get; set; }
         public DbSet<Room> Rooms { get; set; }
-        
+        public DbSet<UserPreference> UserPreferences { get; set; }
+
 
         // 🔥 THÊM ĐOẠN NÀY
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Seat>()
             .HasOne(s => s.Showtime)
             .WithMany()
             .HasForeignKey(s => s.ShowtimeId)
             .OnDelete(DeleteBehavior.Restrict);
-            base.OnModelCreating(modelBuilder);
+           
 
             modelBuilder.Entity<Showtime>()
                 .HasOne(s => s.Room)
@@ -38,6 +40,17 @@ namespace CinemaBooking.Data
                 .HasOne(s => s.Movie)
                 .WithMany()
                 .HasForeignKey(s => s.MovieId);
+            // UserPreference -> ApplicationUser
+            modelBuilder.Entity<UserPreference>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Không cho một user lưu trùng cùng một thể loại
+            modelBuilder.Entity<UserPreference>()
+                .HasIndex(p => new { p.UserId, p.Genre })
+                .IsUnique();
         }
         
     }

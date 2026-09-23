@@ -1,0 +1,260 @@
+﻿@{
+    ViewData["Title"] = "AI Chatbot";
+}
+
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h1 class="fw-bold">💬 AI Chatbot</h1>
+
+        <p class="text-muted">
+            Hỏi AI về phim, suất chiếu và thông tin tại CinemaBooking.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div id="chatMessages"
+                 class="border rounded p-3 mb-3"
+                 style="height: 400px; overflow-y: auto; background: #f8f9fa;">
+
+                <div class="mb-3">
+                    <strong>🤖 CinemaBooking AI:</strong>
+                    <div class="mt-1">
+                        Xin chào! Tôi có thể giúp bạn tìm hiểu về
+                        phim và suất chiếu trong hệ thống.
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="input-group">
+
+                <input type="text"
+                       id="chatInput"
+                       class="form-control"
+                       placeholder="Nhập câu hỏi của bạn..."
+                       autocomplete="off" />
+
+                <button type="button"
+                        class="btn btn-warning"
+                        onclick="sendChatMessage()">
+                    Gửi
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="alert alert-warning mt-4">
+        <strong>⚠️ Lưu ý:</strong>
+        AI có thể đưa ra thông tin chưa chính xác.
+        Vui lòng kiểm tra thông tin phim và suất chiếu trước khi đặt vé.
+    </div>
+
+    <div class="text-center mt-3">
+
+        <a asp-controller="Movie"
+           asp-action="Index"
+           class="btn btn-secondary">
+            ← Quay lại danh sách phim
+        </a>
+
+    </div>
+
+</div>
+
+<script>
+    function appendUserMessage(message) {
+
+        const messages = document.getElementById("chatMessages");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3 text-end";
+
+        const title = document.createElement("strong");
+        title.textContent = "👤 Bạn:";
+
+        const content = document.createElement("div");
+        content.className = "mt-1";
+
+        // Dùng textContent để chống XSS
+        content.textContent = message;
+
+        wrapper.appendChild(title);
+        wrapper.appendChild(content);
+
+        messages.appendChild(wrapper);
+    }
+
+    function appendAIMessage(message) {
+
+        const messages = document.getElementById("chatMessages");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3";
+
+        const title = document.createElement("strong");
+        title.textContent = "🤖 CinemaBooking AI:";
+
+        const content = document.createElement("div");
+        content.className = "mt-1";
+        content.style.whiteSpace = "pre-wrap";
+
+        // Không render HTML do AI trả về
+        content.textContent = message;
+
+        wrapper.appendChild(title);
+        wrapper.appendChild(content);
+
+        messages.appendChild(wrapper);
+    }
+
+    function appendErrorMessage(message) {
+
+        const messages = document.getElementById("chatMessages");
+
+        const errorBox = document.createElement("div");
+        errorBox.className = "alert alert-danger";
+
+        // Không render HTML trong error message
+        errorBox.textContent = message;
+
+        messages.appendChild(errorBox);
+    }
+
+    function appendLoadingMessage(loadingId) {
+
+        const messages = document.getElementById("chatMessages");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3";
+        wrapper.id = loadingId;
+
+        const title = document.createElement("strong");
+        title.textContent = "🤖 CinemaBooking AI:";
+
+        const content = document.createElement("div");
+        content.className = "mt-1 text-muted";
+        content.textContent = "Đang suy nghĩ...";
+
+        wrapper.appendChild(title);
+        wrapper.appendChild(content);
+
+        messages.appendChild(wrapper);
+    }
+
+    async function sendChatMessage() {
+
+        const input = document.getElementById("chatInput");
+        const messages = document.getElementById("chatMessages");
+
+        const message = input.value.trim();
+
+        if (!message) {
+            return;
+        }
+
+        // Hiển thị câu hỏi người dùng an toàn
+        appendUserMessage(message);
+
+        input.value = "";
+
+        const loadingId = "ai-loading-" + Date.now();
+
+        appendLoadingMessage(loadingId);
+
+        messages.scrollTop = messages.scrollHeight;
+
+        try {
+
+            const response = await fetch("/AIChat/Ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    message: message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("HTTP error");
+            }
+
+            const data = await response.json();
+
+            const loadingElement =
+                document.getElementById(loadingId);
+
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+
+            if (data.success) {
+
+                appendAIMessage(
+                    data.message ?? "AI không trả về nội dung."
+                );
+
+            } else {
+
+                appendErrorMessage(
+                    data.message ?? "Không thể xử lý yêu cầu."
+                );
+            }
+
+        }
+        catch (error) {
+
+            const loadingElement =
+                document.getElementById(loadingId);
+
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+
+            appendErrorMessage(
+                "Không thể kết nối với Chatbot. Vui lòng thử lại sau."
+            );
+        }
+
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    document.getElementById("chatInput")
+        .addEventListener("keydown", function (event) {
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendChatMessage();
+            }
+
+        });
+</script>
+
+<style>
+    #chatMessages {
+        color: #212529;
+    }
+
+        #chatMessages strong {
+            color: #212529;
+        }
+
+        #chatMessages div {
+            color: #212529;
+        }
+
+        #chatMessages .text-muted {
+            color: #6c757d !important;
+        }
+
+        #chatMessages .alert {
+            color: #212529;
+        }
+</style>

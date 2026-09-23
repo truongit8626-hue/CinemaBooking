@@ -262,37 +262,76 @@ namespace CinemaBooking.Controllers
 
         public async Task<IActionResult> DeleteShowtime(int id)
         {
-            var showtime = await _context.Showtimes.FindAsync(id);
+            var showtime = await _context.Showtimes
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (showtime == null)
             {
                 TempData["Error"] = "Không tìm thấy suất chiếu!";
-                return RedirectToAction("ManageShowtimes", new { movieId = 1 });
+                return RedirectToAction("Index");
             }
+
+            int movieId = showtime.MovieId;
 
             try
             {
+                // Nếu suất chiếu đã diễn ra thì chỉ ẩn, không xóa dữ liệu lịch sử
                 if (showtime.StartTime < DateTime.Now)
                 {
                     showtime.IsDeleted = true;
+
                     await _context.SaveChangesAsync();
 
-                    TempData["Warning"] = "Suất chiếu đã diễn ra → đã được ẩn!";
-                }
-                else
-                {
-                    _context.Showtimes.Remove(showtime);
-                    await _context.SaveChangesAsync(); // ✅ thành công mới set
+                    TempData["Warning"] =
+                        "Suất chiếu đã diễn ra nên chỉ được ẩn khỏi danh sách.";
 
-                    TempData["Success"] = "Xóa suất chiếu thành công!";
+                    return RedirectToAction(
+                        "ManageShowtimes",
+                        new { movieId = movieId });
                 }
+
+                // Kiểm tra suất chiếu đã có booking hay chưa
+                bool hasBookings = await _context.Bookings
+                    .AnyAsync(b => b.ShowtimeId == id);
+
+                if (hasBookings)
+                {
+                    TempData["Error"] =
+                        "Không thể xóa! Suất chiếu này đã có vé được đặt.";
+
+                    return RedirectToAction(
+                        "ManageShowtimes",
+                        new { movieId = movieId });
+                }
+
+                // Lấy các ghế được tự động tạo cho suất chiếu
+                var seats = await _context.Seats
+                    .Where(s => s.ShowtimeId == id)
+                    .ToListAsync();
+
+                // Xóa ghế trước vì Seat -> Showtime đang dùng DeleteBehavior.Restrict
+                if (seats.Any())
+                {
+                    _context.Seats.RemoveRange(seats);
+                }
+
+                // Sau khi không còn ghế liên kết thì mới xóa Showtime
+                _context.Showtimes.Remove(showtime);
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] =
+                    "✅ Xóa suất chiếu thành công!";
             }
             catch (Exception)
             {
-                TempData["Error"] = "Không thể xóa! Suất chiếu đã có ghế hoặc dữ liệu liên quan.";
+                TempData["Error"] =
+                    "Không thể xóa suất chiếu do có dữ liệu liên quan.";
             }
 
-            return RedirectToAction("ManageShowtimes", new { movieId = showtime.MovieId });
+            return RedirectToAction(
+                "ManageShowtimes",
+                new { movieId = movieId });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]

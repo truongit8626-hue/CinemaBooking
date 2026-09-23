@@ -124,58 +124,86 @@ namespace CinemaBooking.Controllers
 
         // 🔹 Xác nhận thanh toán (fake)
         [HttpPost]
-        public async Task<IActionResult> ConfirmPayment()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(
+            int showtimeId,
+            string seatIds)
         {
-            var seatIdsStr = HttpContext.Session.GetString("seatIds");
-            var showtimeId = HttpContext.Session.GetInt32("showtimeId");
-
-            if (seatIdsStr == null || showtimeId == null)
+            if (showtimeId <= 0 || string.IsNullOrWhiteSpace(seatIds))
             {
-                return Content("❌ Session hết hạn");
+                return Content("❌ Dữ liệu thanh toán không hợp lệ");
             }
 
-            var seatIds = seatIdsStr.Split(',').Select(int.Parse).ToList();
+            var seatIdList = seatIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(int.Parse)
+                .ToList();
 
             var user = await _userManager.GetUserAsync(User);
 
-            using (var transaction = _context.Database.BeginTransaction())
+            if (user == null)
             {
-                try
+                return Challenge();
+            }
+
+            // Kiểm tra ghế có bị người khác đặt trong lúc thanh toán không
+            var alreadyBookedSeatIds = await _context.BookingDetails
+                .Include(x => x.Booking)
+                .Where(x => x.Booking.ShowtimeId == showtimeId)
+                .Select(x => x.SeatId)
+                .ToListAsync();
+
+            if (seatIdList.Any(id => alreadyBookedSeatIds.Contains(id)))
+            {
+                TempData["Error"] =
+                    "❌ Một hoặc nhiều ghế đã được người khác đặt. Vui lòng chọn lại.";
+
+                return RedirectToAction(
+                    "SelectSeats",
+                    new { showtimeId });
+            }
+
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var booking = new Booking
                 {
-                    var booking = new Booking
-                    {
-                        UserId = user.Id,
-                        ShowtimeId = showtimeId.Value,
-                        BookingTime = DateTime.Now
-                    };
+                    UserId = user.Id,
+                    ShowtimeId = showtimeId,
+                    BookingTime = DateTime.Now
+                };
 
-                    _context.Bookings.Add(booking);
-                    _context.SaveChanges();
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
 
-                    foreach (var seatId in seatIds)
-                    {
-                        _context.BookingDetails.Add(new BookingDetail
-                        {
-                            BookingId = booking.Id,
-                            SeatId = seatId,
-                            Price = 50000
-                        });
-                    }
-
-                    _context.SaveChanges();
-                    transaction.Commit();
-
-                    // 🔥 clear session
-                    HttpContext.Session.Remove("seatIds");
-                    HttpContext.Session.Remove("showtimeId");
-
-                    return RedirectToAction("Ticket", new { id = booking.Id });
-                }
-                catch
+                foreach (var seatId in seatIdList)
                 {
-                    transaction.Rollback();
-                    return Content("❌ Lỗi thanh toán");
+                    _context.BookingDetails.Add(new BookingDetail
+                    {
+                        BookingId = booking.Id,
+                        SeatId = seatId,
+                        Price = 50000
+                    });
                 }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Session chỉ còn là dữ liệu tạm, xóa sau khi đặt vé thành công
+                HttpContext.Session.Remove("seatIds");
+                HttpContext.Session.Remove("showtimeId");
+
+                return RedirectToAction(
+                    "Ticket",
+                    new { id = booking.Id });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+
+                return Content("❌ Lỗi thanh toán");
             }
         }
         // 🔹 Vé

@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "AI Dự báo";
+}
+
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h1 class="fw-bold">📊 AI Dự báo</h1>
+        <p class="text-muted">
+            AI phân tích dữ liệu CinemaBooking để dự báo doanh thu,
+            số vé và tỷ lệ lấp đầy.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="alert alert-info">
+                🤖 AI sử dụng dữ liệu bán vé thực tế từ CinemaBooking
+                để đưa ra dự báo.
+            </div>
+
+            <form method="post" asp-action="Forecast">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        Khoảng thời gian dự báo
+                    </label>
+
+                    <select name="days" class="form-select">
+                        <option value="7">7 ngày tới</option>
+                        <option value="14">14 ngày tới</option>
+                        <option value="30" selected>30 ngày tới</option>
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-warning">
+                    🤖 Bắt đầu dự báo
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+    @* Hiển thị lỗi AI nếu có *@
+    @if (ViewBag.AIError != null)
+    {
+        <div class="alert alert-warning mt-4">
+            <strong>⚠️ Thông báo:</strong>
+            @ViewBag.AIError
+        </div>
+    }
+
+    @if (ViewBag.AIResult != null)
+    {
+        <div class="card shadow-sm mt-4">
+
+            <div class="card-header bg-dark text-white">
+                <strong>🤖 Kết quả dự báo AI</strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="alert alert-secondary">
+                    AI đã phân tích
+                    <strong>@ViewBag.DataCount ngày</strong>
+                    dữ liệu bán vé gần nhất và đưa ra dự báo
+                    cho <strong>@ViewBag.Days ngày tiếp theo</strong>.
+                </div>
+
+                <div style="white-space: pre-wrap;">
+                    @ViewBag.AIResult
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <div class="alert alert-warning mt-4">
+        <strong>⚠️ Lưu ý:</strong>
+        Kết quả dự báo do AI tạo ra chỉ mang tính tham khảo,
+        không đảm bảo chính xác tuyệt đối.
+    </div>
+
+    <div class="text-center mt-3">
+        <a asp-controller="Movie"
+           asp-action="Index"
+           class="btn btn-secondary">
+            ← Quay lại
+        </a>
+    </div>
+
+</div>

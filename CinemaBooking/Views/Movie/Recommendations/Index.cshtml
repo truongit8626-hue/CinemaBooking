@@ -1,0 +1,106 @@
+﻿@model CinemaBooking.ViewModels.RecommendationViewModel
+
+@{
+    ViewData["Title"] = "AI đề xuất phim";
+}
+
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h1 class="fw-bold">🎬 AI Đề Xuất Phim</h1>
+
+        <p class="text-muted">
+            Gợi ý phim được cá nhân hóa dựa trên sở thích và lịch sử đặt vé của bạn.
+        </p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h5 class="card-title">
+                🎯 Hồ sơ sở thích của bạn
+            </h5>
+
+            <p class="card-text mb-0">
+                @Model.PreferredGenres
+            </p>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <h5 class="mb-0">
+                🤖 Gemini đề xuất cho bạn
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["AIError"] != null)
+            {
+                <div class="alert alert-danger mb-0">
+                    @TempData["AIError"]
+                </div>
+            }
+            else if (Model.Recommendations != null && Model.Recommendations.Any())
+            {
+                @foreach (var recommendation in Model.Recommendations)
+                {
+                    var movie = Model.Movies
+                        .FirstOrDefault(m => m.Id == recommendation.MovieId);
+
+                    if (movie != null)
+                    {
+                        <div class="border rounded p-3 mb-3">
+
+                            <h5 class="fw-bold mb-2">
+                                🎬 @movie.Title
+                            </h5>
+
+                            <div class="text-muted mb-2">
+                                <strong>Thể loại:</strong> @movie.Genre
+                                &nbsp; | &nbsp;
+                                <strong>Thời lượng:</strong> @movie.Duration phút
+                            </div>
+
+                            <p class="mb-0">
+                                <strong>🤖 AI nhận xét:</strong>
+                                @recommendation.Reason
+                            </p>
+
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    🤖 AI chưa tìm được phim phù hợp.
+                    Bạn có thể xem thêm phim trong danh sách hiện tại.
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <div class="alert alert-warning mt-4">
+        <strong>⚠️ Lưu ý:</strong>
+        Đây là nội dung được AI tạo dựa trên dữ liệu phim và lịch sử đặt vé.
+        Kết quả chỉ mang tính tham khảo.
+        Bạn nên kiểm tra thông tin phim trước khi đặt vé.
+    </div>
+
+    <div class="text-center mt-4">
+
+        <a asp-controller="Movie"
+           asp-action="Index"
+           class="btn btn-secondary">
+            ← Quay lại danh sách phim
+        </a>
+
+    </div>
+
+</div>
