@@ -161,8 +161,13 @@ Mở project bằng Visual Studio và chạy ứng dụng.
 
 ---
 
-# 📌 Lưu ý
+ ## Tài khoản kiểm thử
 
-Các kết quả do AI tạo ra chỉ mang tính hỗ trợ và tham khảo.
+Admin:
+Email: hoanhue@gmail.com
+Password: Truong86@
 
-Người dùng và quản trị viên cần kiểm tra lại thông tin trước khi thực hiện các quyết định nghiệp vụ quan trọng.
+User:
+Email: hoanhoan@gmail.com
+Password: Truong86@
+
