@@ -59,13 +59,14 @@
                             ✏ Sửa
                         </a>
 
-                        <a asp-controller="Admin"
-                               asp-action="DeleteMovie"
-                               asp-route-id="@movie.Id"
-                               class="movie-btn btn-delete"
-                               onclick="return confirm('Bạn có chắc muốn xóa phim này không?');">
-                            🗑 Xóa
-                        </a>
+                        <form asp-controller="Admin" asp-action="DeleteMovie" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@movie.Id" />
+                            <button type="submit" class="movie-btn btn-delete"
+                                    onclick="return confirm('Bạn có chắc muốn xóa phim này không?');">
+                                🗑 Xóa
+                            </button>
+                        </form>
 
                     </div>
                 </div>

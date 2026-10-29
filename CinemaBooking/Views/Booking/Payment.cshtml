@@ -4,7 +4,7 @@
 
     <div class="payment-card">
 
-        <h2 class="title">💳 Thanh toán</h2>
+        <h2 class="title">💳 Thanh toán QR mô phỏng</h2>
 
         <div class="info">
             <p><strong>🎬 Phim:</strong> @Model.MovieName</p>
@@ -18,7 +18,8 @@
         <div class="qr-box">
                 <img src="https://img.vietqr.io/image/VCB-123456789-compact.png?amount=@Model.Total" class="qr-img" class="qr-img" />
         </div>
-        <p class="note">Sau khi chuyển khoản, bấm nút bên dưới 👇</p>
+        <p class="note">Đây là thanh toán mô phỏng cho mục đích demo, không phải VNPay thật.</p>
+        <p class="note">Sau khi chuyển khoản mô phỏng, bấm nút bên dưới 👇</p>
 
         <form asp-action="ConfirmPayment" method="post">
             <input type="hidden" name="showtimeId"

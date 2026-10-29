@@ -29,6 +29,28 @@ namespace CinemaBooking.Data
             .WithMany()
             .HasForeignKey(s => s.ShowtimeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+            // Mỗi Seat được tạo riêng cho một Showtime. Vì vậy một Seat chỉ
+            // được xuất hiện trong tối đa một BookingDetail, kể cả khi có các
+            // request đặt vé đến đồng thời.
+            modelBuilder.Entity<BookingDetail>()
+                .HasIndex(d => d.SeatId)
+                .IsUnique();
+
+            // Giữ tương thích với schema Identity đã có trong CSDL. Nếu không
+            // cấu hình rõ, EF Core 10 sẽ đề xuất đổi các cột này sang 450 ký tự.
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>()
+                .Property(login => login.LoginProvider)
+                .HasMaxLength(128);
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>()
+                .Property(login => login.ProviderKey)
+                .HasMaxLength(128);
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>()
+                .Property(token => token.LoginProvider)
+                .HasMaxLength(128);
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>()
+                .Property(token => token.Name)
+                .HasMaxLength(128);
            
 
             modelBuilder.Entity<Showtime>()

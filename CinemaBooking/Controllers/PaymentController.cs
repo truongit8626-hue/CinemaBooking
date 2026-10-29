@@ -5,18 +5,39 @@ using System.Linq;
 
 namespace CinemaBooking.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class PaymentController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<CinemaBooking.Models.ApplicationUser> _userManager;
 
-        public PaymentController(ApplicationDbContext context)
+        public PaymentController(
+            ApplicationDbContext context,
+            Microsoft.AspNetCore.Identity.UserManager<CinemaBooking.Models.ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public ActionResult CreatePayment(int bookingId)
+        // Luồng đặt vé đang dùng QR mô phỏng trong BookingController.
+        // Action này không phải tích hợp VNPay production: chưa có callback
+        // và xác thực phản hồi từ VNPay.
+        public async Task<IActionResult> CreatePayment(int bookingId)
         {
-            var booking = _context.Bookings.FirstOrDefault(x => x.Id == bookingId);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            var booking = await _context.Bookings
+                .Include(x => x.BookingDetails)
+                .FirstOrDefaultAsync(x => x.Id == bookingId && x.UserId == user.Id);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
 
             string vnp_ReturnUrl = "https://localhost:7246/Payment/Return";
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";

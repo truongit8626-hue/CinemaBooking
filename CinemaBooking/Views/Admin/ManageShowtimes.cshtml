@@ -52,12 +52,14 @@
                         ✏️ Sửa
                     </a>
 
-                    <a asp-action="DeleteShowtime"
-                           asp-route-id="@s.Id"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Xóa suất chiếu này?');">
-                        🗑 Xóa
-                    </a>
+                    <form asp-action="DeleteShowtime" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Xóa suất chiếu này?');">
+                            🗑 Xóa
+                        </button>
+                    </form>
                 </td>
             </tr>
         }

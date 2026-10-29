@@ -46,7 +46,7 @@ namespace CinemaBooking.Controllers
             ViewBag.TotalTickets = totalTickets;
 
             var ticketsByMovie = await _context.BookingDetails
-                .GroupBy(b => b.Booking.Showtime.Movie.Title)
+                .GroupBy(b => b.Booking.Showtime.Movie == null ? "Không xác định" : b.Booking.Showtime.Movie.Title)
                 .Select(g => new
                 {
                     Movie = g.Key,
@@ -137,6 +137,12 @@ namespace CinemaBooking.Controllers
 
             int bufferMinutes = 15;
 
+            if (showtime.StartTime is null)
+            {
+                ModelState.AddModelError(nameof(showtime.StartTime), "Vui lòng nhập thời gian bắt đầu");
+                ViewBag.Rooms = new SelectList(_context.Rooms, "Id", "Name", showtime.RoomId);
+                return View(showtime);
+            }
             DateTime newStart = showtime.StartTime.Value;
 
             // 👉 đúng: KHÔNG cộng buffer
@@ -147,11 +153,10 @@ namespace CinemaBooking.Controllers
 
             // 👉 check trùng
             var isConflict = _context.Showtimes
-                .Where(s => s.RoomId == showtime.RoomId && !s.IsDeleted)
-                .Any(s =>
+                .Where(s => s.RoomId == showtime.RoomId && !s.IsDeleted && s.StartTime.HasValue && s.EndTime.HasValue)
+                .Any(s => s.EndTime.HasValue && s.StartTime.HasValue &&
                     newStart <= s.EndTime.Value.AddMinutes(bufferMinutes) &&
-                    newEnd > s.StartTime.Value
-                );
+                    newEnd > s.StartTime.Value);
 
             if (isConflict)
             {
@@ -218,6 +223,8 @@ namespace CinemaBooking.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteMovie(int id)
         {
             var movie = _context.Movies.Find(id);
@@ -260,6 +267,8 @@ namespace CinemaBooking.Controllers
             return View(showtimes);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteShowtime(int id)
         {
             var showtime = await _context.Showtimes
@@ -370,7 +379,7 @@ namespace CinemaBooking.Controllers
                 .Select(s => new {
                     start = s.StartTime,
                     end = s.EndTime,
-                    title = s.Movie.Title
+                    title = s.Movie == null ? "Không xác định" : s.Movie.Title
                 })
                 .ToList();
 
@@ -396,7 +405,7 @@ namespace CinemaBooking.Controllers
                 .Select(s => new {
                     start = s.StartTime,
                     end = s.EndTime,
-                    title = s.Movie.Title
+                    title = s.Movie == null ? "Không xác định" : s.Movie.Title
                 })
                 .ToList();
 
@@ -406,12 +415,20 @@ namespace CinemaBooking.Controllers
             return View(showtime);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult EditShowtime(Showtime model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
             var movie = _context.Movies.Find(model.MovieId);
+            if (movie == null) return NotFound();
+            if (model.StartTime is null)
+            {
+                ModelState.AddModelError(nameof(model.StartTime), "Vui lòng nhập thời gian bắt đầu");
+                ViewBag.Rooms = new SelectList(_context.Rooms, "Id", "Name", model.RoomId);
+                return View(model);
+            }
 
             // thời lượng phim (phút)
             int duration = movie.Duration;
@@ -429,6 +446,12 @@ namespace CinemaBooking.Controllers
 
             foreach (var s in showtimes)
             {
+                if (s.StartTime is null || s.Movie == null)
+                {
+                    ModelState.AddModelError("", "Dữ liệu suất chiếu hiện có không hợp lệ.");
+                    ViewBag.Rooms = new SelectList(_context.Rooms, "Id", "Name", model.RoomId);
+                    return View(model);
+                }
                 DateTime sStart = s.StartTime.Value;
                 DateTime sEnd = sStart.AddMinutes(s.Movie.Duration);
 
@@ -443,9 +466,9 @@ namespace CinemaBooking.Controllers
                         .Where(x => x.RoomId == model.RoomId && !x.IsDeleted)
                         .Select(x => new
                         {
-                            title = x.Movie.Title,
+                            title = x.Movie == null ? "Không xác định" : x.Movie.Title,
                             start = x.StartTime,
-                            end = x.StartTime.Value.AddMinutes(x.Movie.Duration)
+                            end = x.StartTime.HasValue && x.Movie != null ? x.StartTime.Value.AddMinutes(x.Movie.Duration) : (DateTime?)null
                         }).ToList();
 
                     return View(model);
@@ -454,6 +477,7 @@ namespace CinemaBooking.Controllers
 
             // update
             var showtime = _context.Showtimes.Find(model.Id);
+            if (showtime == null) return NotFound();
             showtime.StartTime = model.StartTime;
             showtime.RoomId = model.RoomId;
 
@@ -470,9 +494,9 @@ namespace CinemaBooking.Controllers
                 .Include(s => s.Movie) // 🔥 QUAN TRỌNG
                 .Select(s => new
                 {
-                    title = s.Movie.Title,
+                    title = s.Movie == null ? "Không xác định" : s.Movie.Title,
                     start = s.StartTime,
-                    end = s.StartTime.Value.AddMinutes(s.Movie.Duration + 15)
+                    end = s.StartTime.HasValue && s.Movie != null ? s.StartTime.Value.AddMinutes(s.Movie.Duration + 15) : (DateTime?)null
                 })
                 .ToList();
         }

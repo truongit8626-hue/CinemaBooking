@@ -1,12 +1,14 @@
 ﻿using CinemaBooking.Data;
 using CinemaBooking.Prompts;
 using CinemaBooking.Services.AI;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace CinemaBooking.Controllers
 {
+    [Authorize]
     public class AIChatController : Controller
     {
         private readonly IGeminiService _geminiService;
@@ -26,6 +28,7 @@ namespace CinemaBooking.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Ask(string message)
         {
             if (string.IsNullOrWhiteSpace(message))

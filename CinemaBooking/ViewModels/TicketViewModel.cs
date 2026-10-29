@@ -2,14 +2,14 @@
 {
     public class TicketViewModel
     {
-        public string MovieName { get; set; }
-        public string Showtime { get; set; }
-        public string Seats { get; set; }
+        public string MovieName { get; set; } = string.Empty;
+        public string Showtime { get; set; } = string.Empty;
+        public string Seats { get; set; } = string.Empty;
         public decimal Total { get; set; }
-        public string Poster { get; set; }
+        public string Poster { get; set; } = string.Empty;
         public int BookingId { get; set; }
-        public string QRCode { get; set; }
-        public string SeatNumber { get; set; }
+        public string QRCode { get; set; } = string.Empty;
+        public string SeatNumber { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
         public int Id { get; set; }
 

@@ -32,14 +32,22 @@ namespace CinemaBooking.Controllers
             return View(_context.Movies.ToList());
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Movie movie)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(movie);
+            }
+
             _context.Movies.Add(movie);
             _context.SaveChanges();
             return RedirectToAction("Index");
@@ -76,7 +84,7 @@ namespace CinemaBooking.Controllers
             var genres = await _context.Bookings
                 .Where(b => b.UserId == user.Id)
                 .SelectMany(b => b.BookingDetails)
-                .Select(bd => bd.Booking.Showtime.Movie.Genre)
+                .Select(bd => bd.Booking.Showtime.Movie == null ? string.Empty : bd.Booking.Showtime.Movie.Genre)
                 .Where(g => !string.IsNullOrWhiteSpace(g))
                 .ToListAsync();
 

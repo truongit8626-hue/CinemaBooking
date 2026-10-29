@@ -6,8 +6,9 @@ namespace CinemaBooking.Models
         public int Id { get; set; }
         public int BookingId { get; set; }
         public int SeatId { get; set; }
-        public Seat Seat { get; set; }
-        public Booking Booking { get; set; }
+        // Both foreign keys are required; navigations are populated by EF Core when loaded.
+        public Seat Seat { get; set; } = null!;
+        public Booking Booking { get; set; } = null!;
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
     }

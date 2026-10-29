@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Net.Sockets;
 
 namespace CinemaBooking.Controllers
 {
@@ -70,11 +69,34 @@ namespace CinemaBooking.Controllers
 
         // 🔹 Đặt vé
         [HttpPost]
-        public IActionResult Book(int showtimeId, int[] seatIds)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Book(int showtimeId, int[] seatIds)
         {
-            if (seatIds == null || seatIds.Length == 0)
+            if (seatIds == null || seatIds.Length == 0 || seatIds.Distinct().Count() != seatIds.Length)
             {
-                TempData["Error"] = "❌ Vui lòng chọn ghế!";
+                TempData["Error"] = "❌ Vui lòng chọn ghế hợp lệ!";
+                return RedirectToAction("SelectSeats", new { showtimeId });
+            }
+
+            var showtime = await _context.Showtimes
+                .Include(x => x.Movie)
+                .FirstOrDefaultAsync(x => x.Id == showtimeId && !x.IsDeleted);
+            if (showtime == null)
+            {
+                return NotFound();
+            }
+            if (showtime.Movie == null)
+            {
+                return NotFound();
+            }
+
+            var validSeatIds = await _context.Seats
+                .Where(x => x.ShowtimeId == showtimeId && seatIds.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+            if (validSeatIds.Count != seatIds.Length)
+            {
+                TempData["Error"] = "❌ Ghế không hợp lệ cho suất chiếu này.";
                 return RedirectToAction("SelectSeats", new { showtimeId });
             }
 
@@ -96,19 +118,15 @@ namespace CinemaBooking.Controllers
             HttpContext.Session.SetInt32("showtimeId", showtimeId);
 
             // 🔥 tạo view model để hiển thị payment
-            var showtime = _context.Showtimes
-                .Include(x => x.Movie)
-                .FirstOrDefault(x => x.Id == showtimeId);
-
-            var seats = _context.Seats
+            var seats = await _context.Seats
                 .Where(x => seatIds.Contains(x.Id))
                 .Select(x => x.SeatNumber)
-                .ToList();
+                .ToListAsync();
 
             var ticket = new TicketViewModel
             {
                 MovieName = showtime.Movie.Title,
-                Showtime = showtime.StartTime?.ToString("HH:mm dd/MM/yyyy"),
+                Showtime = showtime.StartTime?.ToString("HH:mm dd/MM/yyyy") ?? "Chưa xác định",
                 Seats = string.Join(", ", seats),
                 Total = seatIds.Length * 50000
             };
@@ -134,10 +152,19 @@ namespace CinemaBooking.Controllers
                 return Content("❌ Dữ liệu thanh toán không hợp lệ");
             }
 
-            var seatIdList = seatIds
+            var seatIdValues = seatIds
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
                 .ToList();
+            if (seatIdValues.Count == 0 || seatIdValues.Any(value => !int.TryParse(value, out _)))
+            {
+                return BadRequest("❌ Dữ liệu ghế không hợp lệ.");
+            }
+
+            var seatIdList = seatIdValues.Select(int.Parse).ToList();
+            if (seatIdList.Distinct().Count() != seatIdList.Count)
+            {
+                return BadRequest("❌ Dữ liệu ghế không hợp lệ.");
+            }
 
             var user = await _userManager.GetUserAsync(User);
 
@@ -146,28 +173,34 @@ namespace CinemaBooking.Controllers
                 return Challenge();
             }
 
-            // Kiểm tra ghế có bị người khác đặt trong lúc thanh toán không
-            var alreadyBookedSeatIds = await _context.BookingDetails
-                .Include(x => x.Booking)
-                .Where(x => x.Booking.ShowtimeId == showtimeId)
-                .Select(x => x.SeatId)
-                .ToListAsync();
-
-            if (seatIdList.Any(id => alreadyBookedSeatIds.Contains(id)))
-            {
-                TempData["Error"] =
-                    "❌ Một hoặc nhiều ghế đã được người khác đặt. Vui lòng chọn lại.";
-
-                return RedirectToAction(
-                    "SelectSeats",
-                    new { showtimeId });
-            }
-
             await using var transaction =
                 await _context.Database.BeginTransactionAsync();
 
             try
             {
+                var showtimeExists = await _context.Showtimes
+                    .AnyAsync(x => x.Id == showtimeId && !x.IsDeleted);
+                var validSeatCount = await _context.Seats
+                    .CountAsync(x => x.ShowtimeId == showtimeId && seatIdList.Contains(x.Id));
+                if (!showtimeExists || validSeatCount != seatIdList.Count)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest("❌ Dữ liệu suất chiếu hoặc ghế không hợp lệ.");
+                }
+
+                // Ràng buộc unique ở CSDL (khi được áp dụng) là lớp bảo vệ cuối
+                // cùng đối với các request đến đồng thời.
+                var alreadyBookedSeatIds = await _context.BookingDetails
+                    .Where(x => x.Booking.ShowtimeId == showtimeId && seatIdList.Contains(x.SeatId))
+                    .Select(x => x.SeatId)
+                    .ToListAsync();
+                if (alreadyBookedSeatIds.Count > 0)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["Error"] = "❌ Một hoặc nhiều ghế đã được người khác đặt. Vui lòng chọn lại.";
+                    return RedirectToAction("SelectSeats", new { showtimeId });
+                }
+
                 var booking = new Booking
                 {
                     UserId = user.Id,
@@ -199,6 +232,14 @@ namespace CinemaBooking.Controllers
                     "Ticket",
                     new { id = booking.Id });
             }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] =
+                    "❌ Một hoặc nhiều ghế vừa được người khác đặt. Vui lòng chọn lại.";
+
+                return RedirectToAction("SelectSeats", new { showtimeId });
+            }
             catch
             {
                 await transaction.RollbackAsync();
@@ -207,25 +248,30 @@ namespace CinemaBooking.Controllers
             }
         }
         // 🔹 Vé
-        public IActionResult Ticket(int id)
+        public async Task<IActionResult> Ticket(int id)
         {
-            var booking = _context.Bookings
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var booking = await _context.Bookings
                 .Include(x => x.Showtime)
                     .ThenInclude(s => s.Movie)
                 .Include(x => x.BookingDetails)
                     .ThenInclude(d => d.Seat)
-                .FirstOrDefault(x => x.Id == id);
+                .FirstOrDefaultAsync(x => x.Id == id && x.UserId == user.Id);
 
-            if (booking == null) return NotFound();
+            if (booking?.Showtime?.Movie == null) return NotFound();
 
             var ticket = new TicketViewModel
             {
                 MovieName = booking.Showtime.Movie.Title,
-                Showtime = booking.Showtime.StartTime?.ToString("HH:mm dd/MM/yyyy"),
-                Seats = string.Join(", ", booking.BookingDetails.Select(x => x.Seat.SeatNumber)),
+                Showtime = booking.Showtime.StartTime?.ToString("HH:mm dd/MM/yyyy") ?? "Chưa xác định",
+                Seats = string.Join(", ", booking.BookingDetails
+                    .Where(x => x.Seat != null)
+                    .Select(x => x.Seat == null ? string.Empty : x.Seat.SeatNumber)),
                 Total = booking.BookingDetails.Sum(x => x.Price),
                 BookingId = booking.Id,
-                Poster = booking.Showtime.Movie.Poster,
+                Poster = booking.Showtime.Movie.Poster ?? string.Empty,
                 QRCode = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOOKING_{booking.Id}"
             };
 
@@ -235,6 +281,7 @@ namespace CinemaBooking.Controllers
         public async Task<IActionResult> History()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             var now = DateTime.Now;
 
             var history = _context.Bookings
@@ -255,9 +302,11 @@ namespace CinemaBooking.Controllers
         }
         [HttpGet]
         
-        public IActionResult CheckTicket(int id)
+        public async Task<IActionResult> CheckTicket(int id)
         {
-            var booking = _context.Bookings.FirstOrDefault(x => x.Id == id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var booking = await _context.Bookings.FirstOrDefaultAsync(x => x.Id == id && x.UserId == user.Id);
 
             if (booking == null)
                 return Content("❌ Không có vé");
@@ -267,6 +316,7 @@ namespace CinemaBooking.Controllers
         public async Task<IActionResult> MyTickets()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             var now = DateTime.Now;
 
             var bookings = _context.Bookings
@@ -292,40 +342,44 @@ namespace CinemaBooking.Controllers
                     ? b.BookingDetails.Sum(x => x.Price)
                     : 0,
                 BookingId = b.Id,
-                Poster = b.Showtime?.Movie?.Poster,
+                Poster = b.Showtime?.Movie?.Poster ?? string.Empty,
                 QRCode = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Booking:{b.Id}"
             }).ToList();
 
             return View(tickets); // ✅ đúng model
         }
 
-        public IActionResult TicketDetail(int id)
+        public async Task<IActionResult> TicketDetail(int id)
         {
-            var booking = _context.Bookings.FirstOrDefault(b => b.Id == id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == id && b.UserId == user.Id);
 
             if (booking == null) return NotFound();
 
-            var showtime = _context.Showtimes
+            var showtime = await _context.Showtimes
                 .Include(s => s.Movie)
-                .FirstOrDefault(s => s.Id == booking.ShowtimeId);
+                .FirstOrDefaultAsync(s => s.Id == booking.ShowtimeId);
+            if (showtime?.Movie == null) return NotFound();
 
-            var seats = _context.BookingDetails
+            var seats = await _context.BookingDetails
                 .Include(x => x.Seat)
                 .Where(x => x.BookingId == id)
                 .Select(x => x.Seat.SeatNumber)
-                .ToList();
+                .ToListAsync();
 
-            var total = _context.BookingDetails
+            var total = await _context.BookingDetails
                 .Where(x => x.BookingId == id)
-                .Sum(x => x.Price);
+                .SumAsync(x => x.Price);
 
             var model = new TicketViewModel
             {
                 MovieName = showtime.Movie.Title,
-                Showtime = showtime.StartTime?.ToString("HH:mm dd/MM/yyyy"),
+                Showtime = showtime.StartTime?.ToString("HH:mm dd/MM/yyyy") ?? "Chưa xác định",
                 Seats = string.Join(", ", seats),
                 Total = total,
-                BookingId = booking.Id,    Poster = showtime.Movie.Poster,
+                BookingId = booking.Id,
+                Poster = showtime.Movie.Poster ?? string.Empty,
                 QRCode = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Booking:{booking.Id}"
             };
 

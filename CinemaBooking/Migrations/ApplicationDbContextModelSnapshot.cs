@@ -133,7 +133,8 @@ namespace CinemaBooking.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.HasIndex("SeatId");
+                    b.HasIndex("SeatId")
+                        .IsUnique();
 
                     b.ToTable("BookingDetails");
                 });

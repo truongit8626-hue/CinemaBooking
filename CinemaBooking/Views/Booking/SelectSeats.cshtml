@@ -20,6 +20,7 @@
     <h2 class="text-center mb-4 text-warning">🎬 CGV CINEMA</h2>
 
     <form method="post" action="/Booking/Book">
+        @Html.AntiForgeryToken()
         <input type="hidden" name="showtimeId" value="@ViewBag.ShowtimeId" />
 
         <div class="screen">🎬 @ViewBag.Room</div>

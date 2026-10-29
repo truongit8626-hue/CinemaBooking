@@ -27,6 +27,7 @@ namespace CinemaBooking.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Forecast(int days = 30)
         {
             if (days != 7 && days != 14 && days != 30)

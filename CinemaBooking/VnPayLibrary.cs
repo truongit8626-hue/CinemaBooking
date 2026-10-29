@@ -23,7 +23,7 @@ namespace CinemaBooking // ⚠️ QUAN TRỌNG: phải đúng namespace project 
                 responseData.Add(key, value);
         }
 
-        public string GetResponseData(string key)
+        public string? GetResponseData(string key)
         {
             return responseData.ContainsKey(key) ? responseData[key] : null;
         }

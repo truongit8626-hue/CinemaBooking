@@ -1,9 +1,11 @@
 ﻿using CinemaBooking.Data;
 using CinemaBooking.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CinemaBooking.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class RoomController : Controller
     {
         
@@ -20,8 +22,14 @@ namespace CinemaBooking.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Room room)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(room);
+            }
+
             _context.Rooms.Add(room);
             _context.SaveChanges();
 

@@ -8,6 +8,7 @@
         <div asp-validation-summary="All" class="error-box"></div>
 
         <form asp-action="EditShowtime" method="post">
+            @Html.AntiForgeryToken()
 
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="MovieId" />
